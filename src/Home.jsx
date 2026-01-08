@@ -89,7 +89,7 @@ function Home() {
         <div className="home">
             {/* Top Banner */}
             <div className="top-banner">
-                📍 Purok Adelfa, Poblacion North, San Fernando, Philippines | 📞 0936 908 7295
+                📍 Purok Adelfa, Poblacion North, San Fernando, Philippines | 📞 0936 908 7295 | 🕒 4PM - 12AM
             </div>
 
             {/* Navbar */}
