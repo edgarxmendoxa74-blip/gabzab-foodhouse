@@ -62,18 +62,18 @@ INSERT INTO menu_items (title, description, price, category, image) VALUES
 ('Signature Refreshers (Large 22oz)', 'Choose from our wild variety of fruit-infused refreshers. Buy 2 for ₱5 off!', 45.00, 'Refreshers', '/refreshers.jpg'),
 
 -- Silog Series & Rice Meals
-('Chicken Silog', 'Crispy fried chicken served with Garlic Rice and Egg.', 129.00, 'Silog Series', '/silog.jpg'),
+('Chicken Silog', 'Crispy fried chicken served with Garlic Rice and Egg.', 129.00, 'Silog Series', '/chicken_silog_v2.jpg'),
 ('Porkchop Silog', 'Crispy fried porkchop served with Garlic Rice and Egg.', 129.00, 'Silog Series', '/porkchop_silog.png'),
 ('Sisig Silog', 'Our signature sisig served with Garlic Rice and Egg.', 109.00, 'Silog Series', '/silog.jpg'),
 ('Bacon Silog', 'Crispy bacon strips served with Garlic Rice and Egg.', 129.00, 'Silog Series', '/silog.jpg'),
 ('Tocino Silog', 'Sweet cured pork served with Garlic Rice and Egg.', 109.00, 'Silog Series', '/silog.jpg'),
 ('Beef Tapa Silog', 'Savory beef tapa served with Garlic Rice and Egg.', 129.00, 'Silog Series', '/silog.jpg'),
 ('Siomai Silog (4pc)', '4 pieces of fried siomai served with Garlic Rice and Egg.', 109.00, 'Silog Series', '/silog.jpg'),
-('Burger Steak Meal (4pc)', '4 juicy burger patties served with Garlic Rice and Gravy.', 109.00, 'Silog Series', '/burger_steak.png'),
+('4pc Patties Meal', '4 juicy burger patties served with Garlic Rice and Gravy.', 109.00, 'Silog Series', '/patties_meal_v2.jpg'),
 
 -- Special Combos
-('Sisig Rice + Porkchop', 'Our signature Sisig Rice served with a golden crispy Porkchop and Egg.', 179.00, 'Silog Series', '/sisig_rice_porkchop.png'),
-('Sisig Rice + 5pc Patties', 'Our signature Sisig Rice served with 5 juicy burger patties and Egg.', 179.00, 'Silog Series', '/sisig_rice_patties.png'),
+('Sisig Rice + Porkchop', 'Our signature Sisig Rice served with a golden crispy Porkchop and Egg.', 179.00, 'Silog Series', '/sisig_rice_porkchop_v2.jpg'),
+('Sisig Rice + 5pc Patties', 'Our signature Sisig Rice served with 5 juicy burger patties and Egg.', 179.00, 'Silog Series', '/sisig_rice_patties_v2.jpg'),
 
 -- Platters
 ('Spicy Sisig Platter', 'Our signature sizzling sisig, perfect for sharing. Available in sizes good for 2, 3, or 4 pax.', 150.00, 'Platters', '/sisig.jpg');
