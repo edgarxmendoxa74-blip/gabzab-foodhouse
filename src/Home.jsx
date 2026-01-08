@@ -15,6 +15,8 @@ function Home() {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [selectedItem, setSelectedItem] = useState(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [orderType, setOrderType] = useState('delivery')
+    const [paymentMethod, setPaymentMethod] = useState('cod')
 
     useEffect(() => {
         fetchMenuItems()
@@ -55,7 +57,11 @@ function Home() {
         const orderData = {
             full_name: formData.get('fullName'),
             email: formData.get('email'),
-            shipping_address: formData.get('address'),
+            phone: formData.get('phone'),
+            address: orderType === 'delivery' ? formData.get('address') : 'Dine In',
+            order_type: orderType,
+            table_number: formData.get('tableNumber'),
+            payment_method: paymentMethod,
             total_amount: cartTotal,
             items: cart,
             status: 'pending'
@@ -224,19 +230,83 @@ function Home() {
                     <div className="cart-items">
                         <form className="checkout-form" onSubmit={handleCheckout}>
                             <div className="form-group">
+                                <label>Order Type</label>
+                                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                                    <button
+                                        type="button"
+                                        className={`category-btn ${orderType === 'delivery' ? 'active' : ''}`}
+                                        onClick={() => setOrderType('delivery')}
+                                        style={{ flex: 1 }}
+                                    >
+                                        🚀 Delivery
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className={`category-btn ${orderType === 'dine-in' ? 'active' : ''}`}
+                                        onClick={() => setOrderType('dine-in')}
+                                        style={{ flex: 1 }}
+                                    >
+                                        🍽️ Dine In
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="form-group">
                                 <label>Full Name</label>
-                                <input name="fullName" type="text" required placeholder="John Doe" />
+                                <input name="fullName" type="text" required placeholder="Your Name" />
+                            </div>
+                            <div className="form-group">
+                                <label>Phone Number</label>
+                                <input name="phone" type="tel" required placeholder="09XX XXX XXXX" />
                             </div>
                             <div className="form-group">
                                 <label>Email Address</label>
-                                <input name="email" type="email" required placeholder="john@example.com" />
+                                <input name="email" type="email" required placeholder="your@email.com" />
                             </div>
-                            <div className="form-group">
-                                <label>Delivery Address</label>
-                                <input name="address" type="text" required placeholder="Street, City, Province" />
+
+                            {orderType === 'delivery' ? (
+                                <div className="form-group">
+                                    <label>Delivery Address</label>
+                                    <input name="address" type="text" required placeholder="Street, Barangay, City" />
+                                </div>
+                            ) : (
+                                <div className="form-group">
+                                    <label>Table Number</label>
+                                    <input name="tableNumber" type="text" required placeholder="e.g. Table 5" />
+                                </div>
+                            )}
+
+                            <div className="form-group" style={{ marginTop: '1rem' }}>
+                                <label>Payment Method</label>
+                                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                                    <button
+                                        type="button"
+                                        className={`category-btn ${paymentMethod === 'cod' ? 'active' : ''}`}
+                                        onClick={() => setPaymentMethod('cod')}
+                                        style={{ flex: 1 }}
+                                    >
+                                        💵 COD
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className={`category-btn ${paymentMethod === 'gcash' ? 'active' : ''}`}
+                                        onClick={() => setPaymentMethod('gcash')}
+                                        style={{ flex: 1 }}
+                                    >
+                                        📱 GCash
+                                    </button>
+                                </div>
                             </div>
-                            <div className="cart-total" style={{ marginTop: '2rem' }}>
-                                <span>Total Due</span>
+
+                            {paymentMethod === 'gcash' && (
+                                <div style={{ textAlign: 'center', marginTop: '1rem', padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
+                                    <p style={{ fontSize: '0.8rem', color: 'var(--c-gold)', marginBottom: '1rem' }}>Scan QR and Send Screenshots to our Messenger</p>
+                                    <img src="/gcash_qr.jpg" alt="GCash QR Code" style={{ width: '100%', maxWidth: '200px', borderRadius: '10px' }} />
+                                </div>
+                            )}
+
+                            <div className="cart-total" style={{ marginTop: '2rem', borderTop: '1px solid var(--border-light)', paddingTop: '1rem' }}>
+                                <span>Total Amount</span>
                                 <span>₱{cartTotal.toLocaleString()}</span>
                             </div>
                             <button type="submit" disabled={isSubmitting} className="btn-primary" style={{ width: '100%', marginTop: '1rem' }}>

@@ -206,7 +206,9 @@ function AdminDashboard() {
                                         <thead>
                                             <tr>
                                                 <th>ID</th>
-                                                <th>Customer</th>
+                                                <th>Customer & Contact</th>
+                                                <th>Type / Table</th>
+                                                <th>Payment</th>
                                                 <th>Total</th>
                                                 <th>Status</th>
                                                 <th>Date</th>
@@ -219,7 +221,19 @@ function AdminDashboard() {
                                                     <td>#{o.id}</td>
                                                     <td>
                                                         <strong>{o.full_name}</strong><br />
-                                                        <span style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>{o.email}</span>
+                                                        <span style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>📞 {o.phone}</span><br />
+                                                        <span style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>📍 {o.address}</span>
+                                                    </td>
+                                                    <td>
+                                                        <span style={{ textTransform: 'uppercase', fontWeight: 'bold', color: o.order_type === 'delivery' ? '#00d4ff' : '#ff9f43' }}>
+                                                            {o.order_type === 'delivery' ? '🚀 Delivery' : '🍽️ Dine In'}
+                                                        </span>
+                                                        {o.table_number && <><br /><span style={{ color: 'var(--c-gold)', fontSize: '0.9rem' }}>{o.table_number}</span></>}
+                                                    </td>
+                                                    <td>
+                                                        <span style={{ textTransform: 'uppercase', fontWeight: '600' }}>
+                                                            {o.payment_method === 'gcash' ? '📱 GCash' : '💵 COD'}
+                                                        </span>
                                                     </td>
                                                     <td>₱{Number(o.total_amount).toLocaleString()}</td>
                                                     <td>
