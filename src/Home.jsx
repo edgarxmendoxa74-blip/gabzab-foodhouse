@@ -42,16 +42,17 @@ function Home() {
     }
 
     const addToCart = (item) => {
+        const quantityToAdd = item.quantity || 1
         const existingItem = cart.find(cartItem => cartItem.id === item.id)
         if (existingItem) {
             setCart(cart.map(cartItem =>
                 cartItem.id === item.id
-                    ? { ...cartItem, quantity: (cartItem.quantity || 1) + 1 }
+                    ? { ...cartItem, quantity: (cartItem.quantity || 1) + quantityToAdd }
                     : cartItem
             ))
             setIsCartOpen(true)
         } else {
-            setCart([...cart, { ...item, quantity: 1 }])
+            setCart([...cart, { ...item, quantity: quantityToAdd }])
             setIsCartOpen(true)
             setCheckoutStep('cart')
         }
