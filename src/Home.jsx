@@ -385,8 +385,10 @@ function Home() {
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                                     <button
                                         className="btn-primary"
-                                        style={{ width: '100%', background: '#0084FF', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
-                                        onClick={async () => {
+                                        style={{ width: '100%', background: 'var(--c-gold)', color: 'var(--c-midnight)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 'bold' }}
+                                        onClick={(e) => {
+                                            const btn = e.currentTarget;
+                                            const originalText = '📋 Copy Order Details';
                                             const summary = `✨ *NEW ORDER - THE MIDNIGHT CANTEEN* ✨\n\n` +
                                                 `🔢 *Order ID:* #${lastOrder.id}\n` +
                                                 `👤 *Customer:* ${lastOrder.full_name}\n` +
@@ -397,29 +399,32 @@ function Home() {
                                                 `🛒 *ITEMS:*\n${lastOrder.items.map(i => `🍗 ${i.quantity || 1}x ${i.customTitle || i.title}`).join('\n')}\n\n` +
                                                 `💰 *TOTAL AMOUNT: ₱${lastOrder.total_amount.toLocaleString()}`;
 
-                                            try {
-                                                await navigator.clipboard.writeText(summary);
-                                                // Give a small feedback before opening
-                                                const btn = document.getElementById('messenger-btn-text');
-                                                if (btn) btn.innerText = '✅ Copied! Opening Messenger...';
-
+                                            navigator.clipboard.writeText(summary).then(() => {
+                                                btn.innerText = '✅ Copied!';
                                                 setTimeout(() => {
-                                                    // Try passing text parameter (works on some versions/devices)
-                                                    const encodedSummary = encodeURIComponent(summary);
-                                                    window.open(`https://m.me/100064311721918?text=${encodedSummary}`, '_blank');
-                                                    if (btn) btn.innerText = '💬 Send Order via Messenger';
-                                                }, 800);
-                                            } catch (err) {
+                                                    btn.innerText = originalText;
+                                                }, 2000);
+                                            }).catch(err => {
                                                 console.error('Failed to copy', err);
-                                                window.open('https://m.me/100064311721918', '_blank');
-                                            }
+                                                alert('Failed to copy automatically. Please take a screenshot!');
+                                            });
                                         }}
                                     >
-                                        <span id="messenger-btn-text">💬 Send Order via Messenger</span>
+                                        📋 Copy Order Details
+                                    </button>
+
+                                    <button
+                                        className="btn-primary"
+                                        style={{ width: '100%', background: '#0084FF', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                                        onClick={() => {
+                                            window.open('https://m.me/100064311721918', '_blank');
+                                        }}
+                                    >
+                                        💬 Open Messenger to Send
                                     </button>
                                 </div>
                                 <p style={{ fontSize: '0.65rem', color: 'var(--text-light)', textAlign: 'center', marginTop: '0.5rem' }}>
-                                    Order details copied automatically! Just PASTE in Messenger.
+                                    Step 1: Copy Details &nbsp;|&nbsp; Step 2: Open Messenger & Paste
                                 </p>
                             </div>
                         )}
