@@ -394,7 +394,7 @@ function Home() {
                                                 `👤 *Customer:* ${lastOrder.full_name}\n` +
                                                 `📱 *Phone:* ${lastOrder.phone}\n` +
                                                 `🔖 *Type:* ${lastOrder.order_type === 'delivery' ? 'Delivery' : 'Dine In'}\n` +
-                                                (lastOrder.order_type === 'delivery' ? `🏡 *Address:* ${lastOrder.address}\n` : `🍽️ *Table:* ${lastOrder.table_number}\n`) +
+                                                (lastOrder.order_type === 'delivery' ? `🏡 *Address:* ${lastOrder.address}\n📍 *Location:* ____________________\n` : `🍽️ *Table:* ${lastOrder.table_number}\n`) +
                                                 `💳 *Payment:* ${lastOrder.payment_method.toUpperCase()}\n\n` +
                                                 `🛒 *ITEMS:*\n${lastOrder.items.map(i => `🍗 ${i.quantity || 1}x ${i.customTitle || i.title}`).join('\n')}\n\n` +
                                                 `💰 *TOTAL AMOUNT: ₱${lastOrder.total_amount.toLocaleString()}`;
@@ -413,15 +413,15 @@ function Home() {
                                         📋 Copy Order Details
                                     </button>
 
-                                    <button
+                                    <a
+                                        href="https://m.me/100064311721918"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
                                         className="btn-primary"
-                                        style={{ width: '100%', background: '#0084FF', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
-                                        onClick={() => {
-                                            window.open('https://m.me/100064311721918', '_blank');
-                                        }}
+                                        style={{ width: '100%', background: '#0084FF', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', textDecoration: 'none' }}
                                     >
                                         💬 Open Messenger to Send
-                                    </button>
+                                    </a>
                                 </div>
                                 <p style={{ fontSize: '0.65rem', color: 'var(--text-light)', textAlign: 'center', marginTop: '0.5rem' }}>
                                     Step 1: Copy Details &nbsp;|&nbsp; Step 2: Open Messenger & Paste
