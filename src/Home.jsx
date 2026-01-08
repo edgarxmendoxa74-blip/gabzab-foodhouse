@@ -339,28 +339,47 @@ function Home() {
                                     <p style={{ fontWeight: 'bold', marginTop: '0.5rem', color: 'var(--c-gold)' }}>Total: ₱{lastOrder.total_amount.toLocaleString()}</p>
                                 </div>
 
-                                <button
-                                    className="btn-primary"
-                                    style={{ width: '100%', background: '#0084FF', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
-                                    onClick={() => {
-                                        const summary = `🚀 *NEW ORDER - THE MIDNIGHT CANTEEN* 🚀\n\n` +
-                                            `🆔 *Order ID:* #${lastOrder.id}\n` +
-                                            `👤 *Customer:* ${lastOrder.full_name}\n` +
-                                            `📞 *Phone:* ${lastOrder.phone}\n` +
-                                            `📍 *Type:* ${lastOrder.order_type === 'delivery' ? 'Delivery' : 'Dine In'}\n` +
-                                            (lastOrder.order_type === 'delivery' ? `🏠 *Address:* ${lastOrder.address}\n` : `🪑 *Table:* ${lastOrder.table_number}\n`) +
-                                            `💰 *Payment:* ${lastOrder.payment_method.toUpperCase()}\n\n` +
-                                            `📝 *ITEMS:*\n${lastOrder.items.map(i => `• ${i.customTitle || i.title}`).join('\n')}\n\n` +
-                                            `💵 *TOTAL AMOUNT: ₱${lastOrder.total_amount.toLocaleString()}*`;
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                                    <button
+                                        className="btn-primary"
+                                        id="copy-btn"
+                                        style={{ width: '100%', background: 'var(--c-gold)', color: 'var(--c-midnight)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 'bold' }}
+                                        onClick={(e) => {
+                                            const btn = e.currentTarget;
+                                            const originalText = '📋 Copy Order Details';
+                                            const summary = `🚀 *NEW ORDER - THE MIDNIGHT CANTEEN* 🚀\n\n` +
+                                                `🆔 *Order ID:* #${lastOrder.id}\n` +
+                                                `👤 *Customer:* ${lastOrder.full_name}\n` +
+                                                `📞 *Phone:* ${lastOrder.phone}\n` +
+                                                `📍 *Type:* ${lastOrder.order_type === 'delivery' ? 'Delivery' : 'Dine In'}\n` +
+                                                (lastOrder.order_type === 'delivery' ? `🏠 *Address:* ${lastOrder.address}\n` : `🪑 *Table:* ${lastOrder.table_number}\n`) +
+                                                `💰 *Payment:* ${lastOrder.payment_method.toUpperCase()}\n\n` +
+                                                `📝 *ITEMS:*\n${lastOrder.items.map(i => `• ${i.customTitle || i.title}`).join('\n')}\n\n` +
+                                                `💵 *TOTAL AMOUNT: ₱${lastOrder.total_amount.toLocaleString()}*`;
 
-                                        navigator.clipboard.writeText(summary);
-                                        window.open('https://m.me/100064311721918', '_blank');
-                                    }}
-                                >
-                                    💬 Send to Messenger
-                                </button>
+                                            navigator.clipboard.writeText(summary).then(() => {
+                                                btn.innerText = '✅ Copied!';
+                                                setTimeout(() => {
+                                                    btn.innerText = originalText;
+                                                }, 2000);
+                                            });
+                                        }}
+                                    >
+                                        📋 Copy Order Details
+                                    </button>
+
+                                    <button
+                                        className="btn-primary"
+                                        style={{ width: '100%', background: '#0084FF', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                                        onClick={() => {
+                                            window.open('https://m.me/100064311721918', '_blank');
+                                        }}
+                                    >
+                                        💬 Open Messenger to Send
+                                    </button>
+                                </div>
                                 <p style={{ fontSize: '0.65rem', color: 'var(--text-light)', textAlign: 'center', marginTop: '0.5rem' }}>
-                                    Copy summary & open chat
+                                    Step 1: Copy Details &nbsp;|&nbsp; Step 2: Open Messenger & Paste
                                 </p>
                             </div>
                         )}
