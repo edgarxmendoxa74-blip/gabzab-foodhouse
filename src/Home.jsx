@@ -80,7 +80,9 @@ function Home() {
             full_name: formData.get('fullName'),
             email: 'guest@midnightcanteen.com',
             phone: formData.get('phone'),
-            address: orderType === 'delivery' ? formData.get('address') : 'Dine In',
+            address: orderType === 'delivery'
+                ? `${formData.get('address')} ${formData.get('location') ? `(Landmark: ${formData.get('location')})` : ''}`
+                : 'Dine In',
             order_type: orderType,
             table_number: orderType === 'dine-in' ? formData.get('tableNumber') : null,
             payment_method: paymentMethod,
@@ -299,10 +301,16 @@ function Home() {
 
 
                             {orderType === 'delivery' ? (
-                                <div className="form-group">
-                                    <label>Delivery Address</label>
-                                    <textarea name="address" required placeholder="House No., Street, Brgy., City" rows="3"></textarea>
-                                </div>
+                                <>
+                                    <div className="form-group">
+                                        <label>Delivery Address</label>
+                                        <textarea name="address" required placeholder="House No., Street, Brgy., City" rows="3"></textarea>
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Location / Landmark</label>
+                                        <input name="location" type="text" placeholder="e.g. Blue Gate, Near Chapel, etc." />
+                                    </div>
+                                </>
                             ) : (
                                 <div className="form-group">
                                     <label>Table Number</label>
@@ -394,7 +402,7 @@ function Home() {
                                                 `👤 *Customer:* ${lastOrder.full_name}\n` +
                                                 `📱 *Phone:* ${lastOrder.phone}\n` +
                                                 `🔖 *Type:* ${lastOrder.order_type === 'delivery' ? 'Delivery' : 'Dine In'}\n` +
-                                                (lastOrder.order_type === 'delivery' ? `🏡 *Address:* ${lastOrder.address}\n📍 *Location:* ____________________\n` : `🍽️ *Table:* ${lastOrder.table_number}\n`) +
+                                                (lastOrder.order_type === 'delivery' ? `🏡 *Address:* ${lastOrder.address}\n` : `🍽️ *Table:* ${lastOrder.table_number}\n`) +
                                                 `💳 *Payment:* ${lastOrder.payment_method.toUpperCase()}\n\n` +
                                                 `🛒 *ITEMS:*\n${lastOrder.items.map(i => `🍗 ${i.quantity || 1}x ${i.customTitle || i.title}`).join('\n')}\n\n` +
                                                 `💰 *TOTAL AMOUNT: ₱${lastOrder.total_amount.toLocaleString()}`;
