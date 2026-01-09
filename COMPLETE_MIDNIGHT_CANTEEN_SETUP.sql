@@ -4,10 +4,16 @@
 -- This script creates all tables and seeds official menu data.
 -- RUN THIS FIRST in the Supabase SQL Editor.
 
--- 1. CLEANUP (Optional: Remove if you want to keep existing data)
-DROP TABLE IF EXISTS orders;
-DROP TABLE IF EXISTS store_settings;
-DROP TABLE IF EXISTS menu_items;
+-- 1. CLEANUP
+DROP TABLE IF EXISTS order_items CASCADE;
+DROP TABLE IF EXISTS orders CASCADE;
+DROP TABLE IF EXISTS variations CASCADE;
+DROP TABLE IF EXISTS add_ons CASCADE;
+DROP TABLE IF EXISTS menu_items CASCADE;
+DROP TABLE IF EXISTS categories CASCADE;
+DROP TABLE IF EXISTS payment_methods CASCADE;
+DROP TABLE IF EXISTS site_settings CASCADE;
+DROP TABLE IF EXISTS store_settings CASCADE;
 
 -- 2. CREATE TABLES
 CREATE TABLE menu_items (

@@ -28,24 +28,9 @@ function Home() {
     const handleMessengerRedirect = (e) => {
         if (e) e.preventDefault();
         const mMeUrl = `https://m.me/${MESSENGER_ID}`;
-        const fbMessengerUrl = `fb-messenger://user-id/${MESSENGER_ID}`;
 
-        // Detect iOS and Facebook In-App Browser
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        const isAndroid = /Android/.test(navigator.userAgent);
-        const isFBApp = /FBAV|FBAN/.test(navigator.userAgent);
-
-        if (isIOS || isFBApp || isAndroid) {
-            // For mobile, try to open the app directly if possible, or use m.me
-            // location.href is often more reliable than location.assign or window.open on mobile
-            window.location.href = mMeUrl;
-        } else {
-            // On Desktop, try to open in new tab
-            const win = window.open(mMeUrl, '_blank', 'noopener,noreferrer');
-            if (!win || win.closed || typeof win.closed === 'undefined') {
-                window.location.href = mMeUrl;
-            }
-        }
+        // Always use https://m.me link for maximum compatibility
+        window.open(mMeUrl, '_blank', 'noopener,noreferrer');
     };
 
     const fetchMenuItems = async () => {
@@ -116,14 +101,19 @@ function Home() {
             status: 'pending'
         }
 
-        const summary = `Hello Midnight Canteen! I'd like to place an order from your website:\n\n` +
-            `👤 *Customer:* ${orderData.full_name}\n` +
-            `📱 *Phone:* ${orderData.phone}\n` +
-            `🔖 *Type:* ${orderData.order_type.toUpperCase()}\n` +
-            ((orderData.order_type === 'delivery' || orderData.order_type === 'pickup') ? `🏠 *Address:* ${orderData.address}\n` : `🍽️ *Table:* ${orderData.table_number}\n`) +
-            `💳 *Payment:* ${orderData.payment_method.toUpperCase()}\n\n` +
-            `🛒 *ITEMS:*\n${orderData.items.map(i => `• ${i.quantity || 1}x ${i.customTitle || i.title}`).join('\n')}\n\n` +
-            `💰 *TOTAL AMOUNT: ₱${orderData.total_amount.toLocaleString()}*`; // Fixed missing closing asterisk
+        // Plain text summary for clipboard (No emojis, no special symbols)
+        const summary = `HELLO MIDNIGHT CANTEEN\n` +
+            `ORDER REF: #${Date.now().toString().slice(-6)}\n` +
+            `------------------\n` +
+            `CUSTOMER: ${orderData.full_name}\n` +
+            `PHONE: ${orderData.phone}\n` +
+            `TYPE: ${orderData.order_type.toUpperCase()}\n` +
+            ((orderData.order_type === 'delivery' || orderData.order_type === 'pickup') ? `ADDRESS: ${orderData.address}\n` : `TABLE: ${orderData.table_number}\n`) +
+            `PAYMENT: ${orderData.payment_method.toUpperCase()}\n` +
+            `------------------\n` +
+            `ITEMS:\n${orderData.items.map(i => `* ${i.quantity || 1}x ${i.customTitle || i.title}`).join('\n')}\n` +
+            `------------------\n` +
+            `TOTAL: PHP ${orderData.total_amount.toLocaleString()}`;
 
         try {
             setIsSubmitting(true)
@@ -135,18 +125,11 @@ function Home() {
 
             if (error) throw error
 
-            setLastOrder({ ...data, summary: summary + `\n🆔 *Ref:* #${data.id}\n⏰ *Time:* ${new Date().toLocaleTimeString()}` }) // Store summary with unique ID
+            setLastOrder({ ...data, summary: summary + `\n🆔 *Ref:* #${data.id}\n⏰ *Time:* ${new Date().toLocaleTimeString()}` })
             setCheckoutStep('success')
             setCart([])
 
-            // Try to auto-copy
-            try {
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    await navigator.clipboard.writeText(summary);
-                }
-            } catch (err) {
-                console.log('Auto-copy failed');
-            }
+            // Removed auto-copy to comply with manual flow requirement
         } catch (err) {
             alert('Error processing order: ' + err.message)
         } finally {
@@ -400,7 +383,7 @@ function Home() {
 
                             <div className="cart-total" style={{ marginTop: '20px', borderTop: '1px solid var(--border-light)', paddingTop: '15px' }}>
                                 <span>Total Amount</span>
-                                <span>₱{cartTotal.toLocaleString()}</span>
+                                <span>PHP {cartTotal.toLocaleString()}</span>
                             </div>
 
                             <button type="submit" disabled={isSubmitting} className="btn-primary" style={{ width: '100%', marginTop: '1rem', background: '#0084FF' }}>
@@ -427,69 +410,47 @@ function Home() {
                         {lastOrder && (
                             <div style={{ marginTop: '1.5rem', padding: '1.2rem', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', textAlign: 'left', border: '2px solid #0084FF' }}>
                                 <div style={{ textAlign: 'center', marginBottom: '1.2rem' }}>
-                                    <h4 style={{ color: 'var(--c-gold)', marginBottom: '0.5rem', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>One Final Step</h4>
-                                    <p style={{ fontSize: '0.85rem', color: '#fff' }}>Click the button below to copy your order details and send them to us on Messenger.</p>
+                                    <h4 style={{ color: 'var(--c-gold)', marginBottom: '0.5rem', fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Verify & Send</h4>
+                                    <p style={{ fontSize: '0.9rem', color: '#fff' }}>Please follow these steps to complete your order:</p>
                                 </div>
 
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                <div style={{ display: 'grid', gap: '1rem' }}>
+                                    <button
+                                        className="btn-secondary"
+                                        onClick={async (e) => {
+                                            const btn = e.currentTarget;
+                                            try {
+                                                await navigator.clipboard.writeText(lastOrder.summary);
+                                                btn.innerText = "✅ Copied to Clipboard!";
+                                                setTimeout(() => btn.innerText = "1. Copy Order Details", 2000);
+                                            } catch (err) {
+                                                const textArea = document.createElement("textarea");
+                                                textArea.value = lastOrder.summary;
+                                                document.body.appendChild(textArea);
+                                                textArea.select();
+                                                document.execCommand('copy');
+                                                document.body.removeChild(textArea);
+                                                btn.innerText = "✅ Copied to Clipboard!";
+                                                setTimeout(() => btn.innerText = "1. Copy Order Details", 2000);
+                                            }
+                                        }}
+                                        style={{ width: '100%', padding: '1rem', fontWeight: 'bold' }}
+                                    >
+                                        1. Copy Order Details
+                                    </button>
+
                                     <button
                                         className="btn-primary"
-                                        id="messenger-btn"
-                                        style={{ width: '100%', background: '#0084FF', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 'bold', borderRadius: '8px', padding: '1.2rem', border: 'none', cursor: 'pointer', transition: 'transform 0.2s', boxShadow: '0 4px 15px rgba(0, 132, 255, 0.3)' }}
-                                        onClick={(e) => {
-                                            const btn = e.currentTarget;
-                                            const originalContent = btn.innerHTML;
-                                            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-                                            // Improved copy function for iOS/In-App Browsers
-                                            const copyToClipboard = async (text) => {
-                                                try {
-                                                    if (navigator.clipboard && navigator.clipboard.writeText) {
-                                                        await navigator.clipboard.writeText(text);
-                                                        return true;
-                                                    }
-                                                    // Fallback for older browsers
-                                                    const textArea = document.createElement("textarea");
-                                                    textArea.value = text;
-                                                    document.body.appendChild(textArea);
-                                                    textArea.select();
-                                                    document.execCommand('copy');
-                                                    document.body.removeChild(textArea);
-                                                    return true;
-                                                } catch (err) {
-                                                    console.error('Copy failed', err);
-                                                    return false;
-                                                }
-                                            };
-
-                                            copyToClipboard(lastOrder.summary).then((success) => {
-                                                if (success) {
-                                                    btn.innerHTML = '✅ Copied! Redirecting...';
-                                                    btn.style.background = '#28a745';
-                                                } else {
-                                                    btn.innerHTML = '❌ Click Copy Below manually';
-                                                }
-                                            });
-
-                                            // Redirect logic
-                                            const delay = isMobile ? 1200 : 1500;
-
-                                            setTimeout(() => {
-                                                handleMessengerRedirect();
-                                                setTimeout(() => {
-                                                    btn.innerHTML = originalContent;
-                                                    btn.style.background = '#0084FF';
-                                                }, 3000);
-                                            }, delay);
-                                        }}
+                                        onClick={handleMessengerRedirect}
+                                        style={{ width: '100%', padding: '1rem', background: '#0084FF', color: 'white', border: 'none', fontWeight: 'bold' }}
                                     >
-                                        💬 Copy & Open Messenger
+                                        2. Open Messenger & Paste
                                     </button>
                                 </div>
 
                                 <div style={{ marginTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem' }}>
-                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-light)', marginBottom: '0.5rem' }}><b>Order Summary:</b></p>
-                                    <pre style={{ fontSize: '0.7rem', background: 'rgba(0,0,0,0.3)', padding: '0.8rem', borderRadius: '4px', whiteSpace: 'pre-wrap', maxHeight: '150px', overflowY: 'auto' }}>
+                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-light)', marginBottom: '0.5rem' }}><b>Order Preview:</b></p>
+                                    <pre style={{ fontSize: '0.7rem', background: 'rgba(0,0,0,0.3)', padding: '0.8rem', borderRadius: '4px', whiteSpace: 'pre-wrap', maxHeight: '150px', overflowY: 'auto', fontFamily: 'monospace' }}>
                                         {lastOrder.summary}
                                     </pre>
                                 </div>
