@@ -23,6 +23,24 @@ function Home() {
         fetchMenuItems()
     }, [])
 
+    const MESSENGER_ID = "100064311721918"
+
+    const handleMessengerRedirect = (e) => {
+        if (e) e.preventDefault();
+        const mMeUrl = `https://m.me/${MESSENGER_ID}`;
+        const fbMessageUrl = `https://www.facebook.com/messages/t/${MESSENGER_ID}`;
+
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+        if (isIOS) {
+            // on iOS, facebook.com/messages/t/ often triggers the app more reliably
+            window.location.href = fbMessageUrl;
+        } else {
+            // on other platforms, m.me is fine
+            window.open(mMeUrl, '_blank', 'noopener,noreferrer');
+        }
+    };
+
     const fetchMenuItems = async () => {
         try {
             setLoading(true)
@@ -80,8 +98,8 @@ function Home() {
             full_name: formData.get('fullName'),
             email: 'guest@midnightcanteen.com',
             phone: formData.get('phone'),
-            address: orderType === 'delivery'
-                ? `${formData.get('address')} ${formData.get('location') ? `(Landmark: ${formData.get('location')})` : ''}`
+            address: (orderType === 'delivery' || orderType === 'pickup')
+                ? `${formData.get('address') || 'N/A'} ${formData.get('location') ? `(Landmark: ${formData.get('location')})` : ''}`
                 : 'Dine In',
             order_type: orderType,
             table_number: orderType === 'dine-in' ? formData.get('tableNumber') : null,
@@ -286,6 +304,7 @@ function Home() {
                                     style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--c-gold)', background: 'var(--glass-midnight)', color: 'white' }}
                                 >
                                     <option value="delivery">🚀 Delivery</option>
+                                    <option value="pickup">🛍️ Pickup</option>
                                     <option value="dine-in">🍽️ Dine In</option>
                                 </select>
                             </div>
@@ -300,16 +319,23 @@ function Home() {
                             </div>
 
 
-                            {orderType === 'delivery' ? (
+                            {(orderType === 'delivery' || orderType === 'pickup') ? (
                                 <>
                                     <div className="form-group">
-                                        <label>Delivery Address</label>
-                                        <textarea name="address" required placeholder="House No., Street, Brgy., City" rows="3"></textarea>
+                                        <label>{orderType === 'delivery' ? 'Delivery Address' : 'Pickup Instructions'}</label>
+                                        <textarea
+                                            name="address"
+                                            required
+                                            placeholder={orderType === 'delivery' ? "House No., Street, Brgy., City" : "Note for pickup (e.g. Pickup at 6PM)"}
+                                            rows="3"
+                                        ></textarea>
                                     </div>
-                                    <div className="form-group">
-                                        <label>Location / Landmark</label>
-                                        <input name="location" type="text" placeholder="e.g. Blue Gate, Near Chapel, etc." />
-                                    </div>
+                                    {orderType === 'delivery' && (
+                                        <div className="form-group">
+                                            <label>Location / Landmark</label>
+                                            <input name="location" type="text" placeholder="e.g. Blue Gate, Near Chapel, etc." />
+                                        </div>
+                                    )}
                                 </>
                             ) : (
                                 <div className="form-group">
@@ -344,6 +370,14 @@ function Home() {
                                 <div style={{ textAlign: 'center', marginTop: '1rem', padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
                                     <p style={{ fontSize: '0.8rem', color: 'var(--c-gold)', marginBottom: '1rem' }}>Scan QR and Send Screenshot to our Messenger</p>
                                     <img src="/gcash_qr.jpg" alt="GCash QR Code" style={{ width: '100%', maxWidth: '200px', borderRadius: '10px' }} />
+                                    <button
+                                        type="button"
+                                        onClick={handleMessengerRedirect}
+                                        className="btn-primary"
+                                        style={{ width: '100%', marginTop: '1rem', background: '#0084FF', color: 'white', fontSize: '0.8rem' }}
+                                    >
+                                        💬 Open Messenger for GCash
+                                    </button>
                                 </div>
                             )}
 
@@ -376,9 +410,9 @@ function Home() {
                                 <div style={{ maxHeight: '150px', overflowY: 'auto', marginBottom: '1rem' }}>
                                     <p style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}><strong>Customer:</strong> {lastOrder.full_name}</p>
                                     <p style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}><strong>Phone:</strong> {lastOrder.phone}</p>
-                                    <p style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}><strong>Type:</strong> {lastOrder.order_type === 'delivery' ? 'Delivery' : 'Dine In'}</p>
-                                    {lastOrder.order_type === 'delivery' ? (
-                                        <p style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}><strong>Address:</strong> {lastOrder.address}</p>
+                                    <p style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}><strong>Type:</strong> {lastOrder.order_type === 'delivery' ? 'Delivery' : lastOrder.order_type === 'pickup' ? 'Pickup' : 'Dine In'}</p>
+                                    {(lastOrder.order_type === 'delivery' || lastOrder.order_type === 'pickup') ? (
+                                        <p style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}><strong>{lastOrder.order_type === 'delivery' ? 'Address' : 'Note'}:</strong> {lastOrder.address}</p>
                                     ) : (
                                         <p style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}><strong>Table:</strong> {lastOrder.table_number}</p>
                                     )}
@@ -401,8 +435,8 @@ function Home() {
                                                 `🔢 *Order ID:* #${lastOrder.id}\n` +
                                                 `👤 *Customer:* ${lastOrder.full_name}\n` +
                                                 `📱 *Phone:* ${lastOrder.phone}\n` +
-                                                `🔖 *Type:* ${lastOrder.order_type === 'delivery' ? 'Delivery' : 'Dine In'}\n` +
-                                                (lastOrder.order_type === 'delivery' ? `🏡 *Address:* ${lastOrder.address}\n` : `🍽️ *Table:* ${lastOrder.table_number}\n`) +
+                                                `🔖 *Type:* ${lastOrder.order_type.toUpperCase()}\n` +
+                                                ((lastOrder.order_type === 'delivery' || lastOrder.order_type === 'pickup') ? `🏡 *Note/Address:* ${lastOrder.address}\n` : `🍽️ *Table:* ${lastOrder.table_number}\n`) +
                                                 `💳 *Payment:* ${lastOrder.payment_method.toUpperCase()}\n\n` +
                                                 `🛒 *ITEMS:*\n${lastOrder.items.map(i => `🍗 ${i.quantity || 1}x ${i.customTitle || i.title}`).join('\n')}\n\n` +
                                                 `💰 *TOTAL AMOUNT: ₱${lastOrder.total_amount.toLocaleString()}`;
@@ -421,13 +455,13 @@ function Home() {
                                         📋 Copy Order Details
                                     </button>
 
-                                    <a
-                                        href="https://m.me/100064311721918"
+                                    <button
+                                        onClick={handleMessengerRedirect}
                                         className="btn-primary"
-                                        style={{ width: '100%', background: '#0084FF', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', textDecoration: 'none', cursor: 'pointer' }}
+                                        style={{ width: '100%', background: '#0084FF', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', textDecoration: 'none', cursor: 'pointer', border: 'none' }}
                                     >
                                         💬 Open Messenger to Send
-                                    </a>
+                                    </button>
                                 </div>
                                 <p style={{ fontSize: '0.65rem', color: 'var(--text-light)', textAlign: 'center', marginTop: '0.5rem' }}>
                                     Step 1: Copy Details &nbsp;|&nbsp; Step 2: Open Messenger & Paste
