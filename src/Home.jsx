@@ -28,16 +28,21 @@ function Home() {
     const handleMessengerRedirect = (e) => {
         if (e) e.preventDefault();
         const mMeUrl = `https://m.me/${MESSENGER_ID}`;
-        const fbMessageUrl = `https://www.facebook.com/messages/t/${MESSENGER_ID}`;
 
+        // Detect iOS and Facebook In-App Browser
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isFBApp = /FBAV|FBAN/.test(navigator.userAgent);
 
-        if (isIOS) {
-            // on iOS, facebook.com/messages/t/ often triggers the app more reliably
-            window.location.href = fbMessageUrl;
+        if (isIOS || isFBApp) {
+            // Mobile iOS and FB In-App browser handle location.assign much better than window.open
+            window.location.assign(mMeUrl);
         } else {
-            // on other platforms, m.me is fine
-            window.open(mMeUrl, '_blank', 'noopener,noreferrer');
+            // On Desktop/Android, try to open in new tab
+            const win = window.open(mMeUrl, '_blank', 'noopener,noreferrer');
+            if (!win || win.closed || typeof win.closed === 'undefined') {
+                // If blocked by popup blocker, use same window
+                window.location.assign(mMeUrl);
+            }
         }
     };
 
