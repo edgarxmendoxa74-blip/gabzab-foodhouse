@@ -591,13 +591,26 @@ function Home() {
                                         1. Copy Order Details
                                     </button>
 
-                                    <button
+                                    <a
+                                        href="https://m.me/gzsbaratong.baligya.79"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
                                         className="btn-primary"
-                                        onClick={handleMessengerRedirect}
-                                        style={{ width: '100%', padding: '1rem', background: '#0084FF', color: 'white', border: 'none', fontWeight: 'bold' }}
+                                        style={{
+                                            width: '100%',
+                                            padding: '1rem',
+                                            background: '#0084FF',
+                                            color: 'white',
+                                            border: 'none',
+                                            fontWeight: 'bold',
+                                            textDecoration: 'none',
+                                            display: 'block',
+                                            textAlign: 'center',
+                                            boxSizing: 'border-box'
+                                        }}
                                     >
                                         2. Open Messenger & Paste
-                                    </button>
+                                    </a>
                                 </div>
 
                                 <div style={{ marginTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem' }}>
