@@ -11,11 +11,11 @@ export default function FullDetailsModal({ painting: item, isOpen, onClose, addT
 
     if (!isOpen || !item) return null
 
-    const isWings = item.title.toLowerCase().includes('wings')
-    const isSilog = item.category.toLowerCase().includes('silog')
-    const isRefreshers = item.category.toLowerCase().includes('refreshers')
-    const isPlatter = item.title.toLowerCase().includes('platter')
-    const isBuldak = item.title.toLowerCase().includes('buldak') || item.category === 'Noodles'
+    const isWings = item.title?.toLowerCase().includes('wings')
+    const isSilog = item.category?.toLowerCase().includes('silog')
+    const isRefreshers = item.category?.toLowerCase().includes('refreshers')
+    const isPlatter = item.title?.toLowerCase().includes('platter')
+    const isBuldak = item.title?.toLowerCase().includes('buldak') || item.category === 'Noodles'
     const isMilktea = item.category === 'Classic Milktea Series'
     const isFruitTea = item.category === 'Fruit Tea Series'
 
@@ -83,7 +83,7 @@ export default function FullDetailsModal({ painting: item, isOpen, onClose, addT
 
     const handleAddToCart = () => {
         let finalPrice = item.price
-        let customName = item.title
+        let customName = item.title || ''
         let addOnsText = ''
 
         if (selectedAddOns.length > 0) {
@@ -121,8 +121,8 @@ export default function FullDetailsModal({ painting: item, isOpen, onClose, addT
 
         const customizedItem = {
             ...item,
-            id: `${item.id}-${selectedSize || ''}-${selectedFlavor || ''}-${Date.now()}`,
-            customTitle: customName.trim(),
+            id: `${item.id}-${selectedSize || 'std'}-${selectedFlavor || 'std'}-${(selectedAddOns.map(a => a.label).sort().join('_') || 'none')}`,
+            customTitle: (customName || '').trim(),
             price: finalPrice,
             quantity: quantity
         }
@@ -145,7 +145,7 @@ export default function FullDetailsModal({ painting: item, isOpen, onClose, addT
                 <button className="modal-close" onClick={onClose} style={{ color: 'var(--c-gold)' }}>&times;</button>
 
                 <div className="modal-body" style={{ display: 'block', padding: 0 }}>
-                    <div className="modal-details" style={{ color: 'white', padding: '2rem' }}>
+                    <div className="modal-details" style={{ color: 'var(--text)', padding: '2rem' }}>
                         <h2 className="logo-branding" style={{ color: 'var(--c-gold)', fontSize: '2rem' }}>{item.title}</h2>
 
                         <p style={{ color: 'var(--text-light)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>{item.description}</p>
@@ -411,9 +411,9 @@ export default function FullDetailsModal({ painting: item, isOpen, onClose, addT
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                 <button
                                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                    style={{ background: 'var(--c-slate)', border: '1px solid var(--border-light)', color: 'white', width: '40px', height: '40px', borderRadius: '4px', fontSize: '1.2rem' }}
+                                    style={{ background: 'white', border: '1px solid var(--border-light)', color: 'var(--text)', width: '40px', height: '40px', borderRadius: '4px', fontSize: '1.2rem' }}
                                 >-</button>
-                                <span style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{quantity}</span>
+                                <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--text)' }}>{quantity}</span>
                                 <button
                                     onClick={() => setQuantity(quantity + 1)}
                                     style={{ background: 'var(--c-gold)', border: 'none', color: 'var(--c-midnight)', width: '40px', height: '40px', borderRadius: '4px', fontSize: '1.2rem', fontWeight: 'bold' }}

@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
-import logo from './assets/logo_brand.jpg'
+import logo from './assets/gabzab_logo.jpg'
 import heroImg from './assets/hero.jpg'
 import FullDetailsModal from './FullDetailsModal'
+import Maintenance from './Maintenance'
+
+const IS_PAUSED = false;
 
 function Home() {
     const [menuItems, setMenuItems] = useState([])
@@ -18,19 +21,83 @@ function Home() {
     const [orderType, setOrderType] = useState('delivery')
     const [paymentMethod, setPaymentMethod] = useState('cod')
     const [lastOrder, setLastOrder] = useState(null)
+    const [showToast, setShowToast] = useState(false)
+
+    // Admin Settings States
+    const [categories, setCategories] = useState([])
+    const [orderTypes, setOrderTypes] = useState([])
+    const [paymentSettings, setPaymentSettings] = useState([])
+    const [storeSettings, setStoreSettings] = useState({
+        store_name: 'Gabzab Food House',
+        contact: '0939-594-7269',
+        open_time: '10:00',
+        close_time: '21:00',
+        address: 'Philippines'
+    })
+
+    // Load cart from local storage on mount
+    useEffect(() => {
+        const savedCart = localStorage.getItem('gabzab_cart')
+        if (savedCart) {
+            try {
+                setCart(JSON.parse(savedCart))
+            } catch (e) {
+                console.error('Error parsing cart from local storage', e)
+            }
+        }
+    }, [])
+
+    // Save cart to local storage whenever it changes
+    useEffect(() => {
+        localStorage.setItem('gabzab_cart', JSON.stringify(cart))
+    }, [cart])
 
     useEffect(() => {
+        fetchAllSettings()
         fetchMenuItems()
     }, [])
 
-    const MESSENGER_ID = "100064311721918"
+    const fetchAllSettings = async () => {
+        try {
+            // Fetch Categories
+            const { data: catData } = await supabase.from('categories').select('*').order('sort_order', { ascending: true })
+            if (catData) setCategories(catData)
+
+            // Fetch Order Types
+            const { data: otData } = await supabase.from('order_types').select('*').eq('is_active', true)
+            if (otData) {
+                setOrderTypes(otData)
+                if (otData.length > 0 && !otData.find(ot => ot.id === orderType)) {
+                    setOrderType(otData[0].id)
+                }
+            }
+
+            // Fetch Payment Settings
+            const { data: psData } = await supabase.from('payment_settings').select('*').eq('is_active', true)
+            if (psData) {
+                setPaymentSettings(psData)
+                if (psData.length > 0 && !psData.find(ps => ps.id === paymentMethod)) {
+                    setPaymentMethod(psData[0].id)
+                }
+            }
+
+            // Fetch Store Settings
+            const { data: ssData } = await supabase.from('store_settings').select('*').single()
+            if (ssData) setStoreSettings(ssData)
+        } catch (err) {
+            console.error('Error fetching settings:', err.message)
+        }
+    }
+
+    if (IS_PAUSED) {
+        return <Maintenance />
+    }
 
     const handleMessengerRedirect = (e) => {
         if (e) e.preventDefault();
-        const mMeUrl = `https://m.me/${MESSENGER_ID}`;
 
-        // Always use https://m.me link for maximum compatibility
-        window.open(mMeUrl, '_blank', 'noopener,noreferrer');
+        // Use window.location.href instead of window.open to avoid "double page" (extra tabs) on iOS
+        window.location.href = "https://m.me/gzsbaratong.baligya.79";
     };
 
     const fetchMenuItems = async () => {
@@ -60,12 +127,12 @@ function Home() {
                     ? { ...cartItem, quantity: (cartItem.quantity || 1) + quantityToAdd }
                     : cartItem
             ))
-            setIsCartOpen(true)
         } else {
             setCart([...cart, { ...item, quantity: quantityToAdd }])
-            setIsCartOpen(true)
-            setCheckoutStep('cart')
         }
+        // Show success feedback
+        setShowToast(true)
+        setTimeout(() => setShowToast(false), 2000)
     }
 
     const updateQuantity = (id, change) => {
@@ -86,32 +153,38 @@ function Home() {
     const handleCheckout = async (e) => {
         e.preventDefault()
         const formData = new FormData(e.target)
-        const orderData = {
+
+        // Construct customer details object
+        const customerDetails = {
             full_name: formData.get('fullName'),
-            email: 'guest@midnightcanteen.com',
+            email: 'guest@gabzabfoodhouse.com',
             phone: formData.get('phone'),
             address: (orderType === 'delivery' || orderType === 'pickup')
                 ? `${formData.get('address') || 'N/A'} ${formData.get('location') ? `(Landmark: ${formData.get('location')})` : ''}`
                 : 'Dine In',
+            table_number: orderType === 'dine-in' ? formData.get('tableNumber') : null
+        }
+
+        const orderData = {
             order_type: orderType,
-            table_number: orderType === 'dine-in' ? formData.get('tableNumber') : null,
             payment_method: paymentMethod,
             total_amount: cartTotal,
             items: cart,
-            status: 'pending'
+            status: 'Pending',
+            customer_details: customerDetails
         }
 
         // Plain text summary for clipboard (No emojis, no special symbols)
-        const summary = `HELLO MIDNIGHT CANTEEN\n` +
+        const summary = `HELLO GABZAB FOOD HOUSE\n` +
             `ORDER REF: #${Date.now().toString().slice(-6)}\n` +
             `------------------\n` +
-            `CUSTOMER: ${orderData.full_name}\n` +
-            `PHONE: ${orderData.phone}\n` +
+            `CUSTOMER: ${customerDetails.full_name}\n` +
+            `PHONE: ${customerDetails.phone}\n` +
             `TYPE: ${orderData.order_type.toUpperCase()}\n` +
-            ((orderData.order_type === 'delivery' || orderData.order_type === 'pickup') ? `ADDRESS: ${orderData.address}\n` : `TABLE: ${orderData.table_number}\n`) +
+            ((orderData.order_type === 'delivery' || orderData.order_type === 'pickup') ? `ADDRESS: ${customerDetails.address}\n` : `TABLE: ${customerDetails.table_number}\n`) +
             `PAYMENT: ${orderData.payment_method.toUpperCase()}\n` +
             `------------------\n` +
-            `ITEMS:\n${orderData.items.map(i => `* ${i.quantity || 1}x ${i.customTitle || i.title}`).join('\n')}\n` +
+            `ITEMS:\n${orderData.items.map(i => `* ${i.quantity || 1}x ${i.customTitle || i.name}`).join('\n')}\n` +
             `------------------\n` +
             `TOTAL: PHP ${orderData.total_amount.toLocaleString()}`;
 
@@ -125,9 +198,10 @@ function Home() {
 
             if (error) throw error
 
-            setLastOrder({ ...data, summary: summary + `\n🆔 *Ref:* #${data.id}\n⏰ *Time:* ${new Date().toLocaleTimeString()}` })
+            setLastOrder({ ...data, summary: summary + `\nRef: #${data.id}\nTime: ${new Date().toLocaleTimeString()}` })
             setCheckoutStep('success')
             setCart([])
+            localStorage.removeItem('gabzab_cart')
 
             // Removed auto-copy to comply with manual flow requirement
         } catch (err) {
@@ -138,7 +212,7 @@ function Home() {
     }
 
     const filteredItems = menuItems.filter(p => {
-        const matchesCategory = filter === 'All' || p.category === filter
+        const matchesCategory = filter === 'All' || p.category_id === filter || p.category === filter
         return matchesCategory
     })
 
@@ -146,19 +220,68 @@ function Home() {
 
     return (
         <div className="home">
+            {/* Toast Notification */}
+            {showToast && (
+                <div style={{
+                    position: 'fixed',
+                    bottom: '20px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    color: 'white',
+                    padding: '12px 24px',
+                    borderRadius: '8px',
+                    zIndex: 3000,
+                    animation: 'fadeIn 0.3s ease-out',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                }}>
+                    <span style={{ color: '#4ade80' }}>✓</span> Added to Cart
+                </div>
+            )}
+            <style>{`
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translate(-50%, 20px); }
+                    to { opacity: 1; transform: translate(-50%, 0); }
+                }
+                .checkout-form label {
+                    color: black !important;
+                    font-weight: 600;
+                }
+                .checkout-form input, 
+                .checkout-form select, 
+                .checkout-form textarea {
+                    color: black !important;
+                    background: rgba(255, 255, 255, 0.8) !important;
+                }
+                .checkout-form input::placeholder, 
+                .checkout-form textarea::placeholder {
+                    color: #666 !important;
+                }
+            `}</style>
             {/* Top Banner */}
             <div className="top-banner">
-                📍 Purok Adelfa, Poblacion North, San Fernando, Philippines | 📞 0936 908 7295 | 🕒 4PM - 12AM
+                {storeSettings.store_name} - American Ribhouse | {storeSettings.address} | Tel: {storeSettings.contact} | Hours: {storeSettings.open_time} - {storeSettings.close_time}
             </div>
 
             {/* Navbar */}
             <nav className="navbar">
                 <div className="container" style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                    <div className="brand" style={{ display: 'flex', alignItems: 'center' }}>
-                        <img src={logo} alt="The Midnight Canteen Logo" style={{ height: '45px', width: '45px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--accent)' }} />
+                    <div className="brand" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <img src={logo} alt="Gabzab Food House Logo" style={{ height: '55px', width: '55px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--accent)' }} />
+                        <span className="brand-name" style={{
+                            color: 'var(--c-gold)',
+                            fontSize: '1.4rem',
+                            fontWeight: '800',
+                            fontFamily: 'Alfa Slab One, serif',
+                            letterSpacing: '1px',
+                            textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
+                        }}>{storeSettings.store_name}</span>
                     </div>
                     <button className="cart-icon" onClick={() => { setIsCartOpen(true); setCheckoutStep('cart') }}>
-                        🛒 <span className="cart-count">{cart.length}</span>
+                        <span style={{ fontSize: '1.2rem' }}>🛒</span> <span className="cart-count">{cart.length}</span>
                     </button>
                 </div>
             </nav>
@@ -175,21 +298,31 @@ function Home() {
                 }}>
                     {/* Hide scrollbar for Chrome/Safari/Opera */}
                     <style>{`
-                       .container::-webkit-scrollbar { 
-                           display: none; 
-                       }
-                   `}</style>
-                    {['All', 'Wings Series', 'Silog Series', 'Noodles', 'Classic Milktea Series', 'Fruit Tea Series', 'Refreshers', 'Platters'].map(cat => (
+                        .container::-webkit-scrollbar { 
+                            display: none; 
+                        }
+                    `}</style>
+                    <button
+                        onClick={() => {
+                            setFilter('All');
+                            document.getElementById('menu').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }}
+                        className={`category-btn ${filter === 'All' ? 'active' : ''}`}
+                        style={{ fontSize: '0.85rem', padding: '0.5rem 1.2rem', flexShrink: 0 }}
+                    >
+                        All
+                    </button>
+                    {categories.map(cat => (
                         <button
-                            key={cat}
+                            key={cat.id}
                             onClick={() => {
-                                setFilter(cat);
+                                setFilter(cat.id);
                                 document.getElementById('menu').scrollIntoView({ behavior: 'smooth', block: 'start' });
                             }}
-                            className={`category-btn ${filter === cat ? 'active' : ''}`}
+                            className={`category-btn ${filter === cat.id ? 'active' : ''}`}
                             style={{ fontSize: '0.85rem', padding: '0.5rem 1.2rem', flexShrink: 0 }}
                         >
-                            {cat}
+                            {cat.name}
                         </button>
                     ))}
                 </div>
@@ -202,10 +335,10 @@ function Home() {
                     <div className="section-title" style={{ textAlign: 'center', marginBottom: '4rem' }}>
                         <h2 className="logo-branding" style={{ fontSize: '3.5rem', marginBottom: '1rem', display: 'block' }}>Our Menu</h2>
                         <p style={{ fontFamily: 'Alfa Slab One, serif', fontSize: '1.2rem', color: 'var(--c-gold)', letterSpacing: '1px', textShadow: '2px 2px 0px #000' }}>
-                            CRAVE FULFILLED, RIGHT AT YOUR DOORSTEP! 🍴👋
+                            CRAVE FULFILLED, RIGHT AT YOUR DOORSTEP!
                         </p>
                         <p style={{ color: 'var(--text-light)', fontSize: '1.1rem', marginTop: '0.8rem', fontWeight: '500' }}>
-                            Book your orders now and satisfy your cravings! 📦
+                            Book your orders now and satisfy your cravings!
                         </p>
                     </div>
 
@@ -225,10 +358,15 @@ function Home() {
                                 {filteredItems.map(item => (
                                     <div key={item.id} className="painting-card">
                                         <div className="painting-image-container">
-                                            <img src={item.image} alt={item.title} className="painting-image" />
+                                            <img
+                                                src={item.image || logo}
+                                                alt={item.title}
+                                                className="painting-image"
+                                                onError={(e) => { e.target.onerror = null; e.target.src = logo; }}
+                                            />
                                         </div>
                                         <div className="painting-info">
-                                            <h3 className="painting-title">{item.title}</h3>
+                                            <h3 className="painting-title">{item.name}</h3>
                                             <p className="item-description-short">{item.description || 'Deliciously prepared with our signature recipe.'}</p>
                                             <p className="painting-price">₱{Number(item.price).toLocaleString()}</p>
                                             <button
@@ -273,7 +411,7 @@ function Home() {
                                     <div key={item.id} className="cart-item">
                                         <img src={item.image} alt={item.title} className="cart-item-img" />
                                         <div className="cart-item-details">
-                                            <h4>{item.customTitle || item.title}</h4>
+                                            <h4>{item.customTitle || item.name}</h4>
                                             <p>₱{Number(item.price).toLocaleString()}</p>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.1)', padding: '0.2rem', borderRadius: '4px' }}>
@@ -305,16 +443,20 @@ function Home() {
                         <form className="checkout-form" onSubmit={handleCheckout}>
                             <div className="form-group">
                                 <label>Order Type</label>
-                                <select
-                                    name="orderType"
-                                    value={orderType}
-                                    onChange={(e) => setOrderType(e.target.value)}
-                                    style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--c-gold)', background: 'var(--glass-midnight)', color: 'white' }}
-                                >
-                                    <option value="delivery">🚀 Delivery</option>
-                                    <option value="pickup">🛍️ Pickup</option>
-                                    <option value="dine-in">🍽️ Dine In</option>
-                                </select>
+                                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                    {orderTypes.map(ot => (
+                                        <button
+                                            key={ot.id}
+                                            type="button"
+                                            className={`category-btn ${orderType === ot.id ? 'active' : ''}`}
+                                            onClick={() => setOrderType(ot.id)}
+                                            style={{ flex: '1 1 auto', padding: '0.5rem', fontSize: '0.9rem', minWidth: '80px' }}
+                                        >
+                                            {ot.name}
+                                        </button>
+                                    ))}
+                                </div>
+                                <input type="hidden" name="orderType" value={orderType} />
                             </div>
 
                             <div className="form-group">
@@ -354,30 +496,31 @@ function Home() {
 
                             <div className="form-group" style={{ marginTop: '1rem' }}>
                                 <label>Payment Method</label>
-                                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
-                                    <button
-                                        type="button"
-                                        className={`category-btn ${paymentMethod === 'cod' ? 'active' : ''}`}
-                                        onClick={() => setPaymentMethod('cod')}
-                                        style={{ flex: 1 }}
-                                    >
-                                        💵 COD
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className={`category-btn ${paymentMethod === 'gcash' ? 'active' : ''}`}
-                                        onClick={() => setPaymentMethod('gcash')}
-                                        style={{ flex: 1 }}
-                                    >
-                                        📱 GCash
-                                    </button>
+                                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+                                    {paymentSettings.map(pm => (
+                                        <button
+                                            key={pm.id}
+                                            type="button"
+                                            className={`category-btn ${paymentMethod === pm.id ? 'active' : ''}`}
+                                            onClick={() => setPaymentMethod(pm.id)}
+                                            style={{ flex: '1 1 auto', minWidth: '100px' }}
+                                        >
+                                            {pm.name}
+                                        </button>
+                                    ))}
                                 </div>
                             </div>
 
-                            {paymentMethod === 'gcash' && (
+                            {paymentSettings.find(pm => pm.id === paymentMethod)?.qr_url && (
                                 <div style={{ textAlign: 'center', marginTop: '1rem', padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
                                     <p style={{ fontSize: '0.8rem', color: 'var(--c-gold)', marginBottom: '1rem' }}>Scan QR and Send Screenshot to Messenger</p>
-                                    <img src="/gcash_qr.jpg" alt="GCash QR Code" style={{ width: '100%', maxWidth: '200px', borderRadius: '10px' }} />
+                                    <img src={paymentSettings.find(pm => pm.id === paymentMethod).qr_url} alt={`${paymentMethod} QR Code`} style={{ width: '100%', maxWidth: '200px', borderRadius: '10px' }} />
+                                </div>
+                            )}
+                            {paymentSettings.find(pm => pm.id === paymentMethod)?.account_number && (
+                                <div style={{ textAlign: 'center', marginTop: '0.5rem', padding: '0.5rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
+                                    <p style={{ fontSize: '0.9rem', color: 'white' }}>{paymentSettings.find(pm => pm.id === paymentMethod).account_name}</p>
+                                    <p style={{ fontSize: '1.1rem', color: 'var(--c-gold)', fontWeight: 'bold' }}>{paymentSettings.find(pm => pm.id === paymentMethod).account_number}</p>
                                 </div>
                             )}
 
@@ -387,7 +530,7 @@ function Home() {
                             </div>
 
                             <button type="submit" disabled={isSubmitting} className="btn-primary" style={{ width: '100%', marginTop: '1rem', background: '#0084FF' }}>
-                                {isSubmitting ? 'Processing...' : '🚀 Submit & Message Us'}
+                                {isSubmitting ? 'Processing...' : 'Submit & Message Us'}
                             </button>
                             <p style={{ fontSize: '0.7rem', textAlign: 'center', marginTop: '0.5rem', color: 'var(--text-light)' }}>
                                 Clicking "Submit" will save your order and prepare it for Messenger.
@@ -401,7 +544,7 @@ function Home() {
 
                 {checkoutStep === 'success' && (
                     <div className="cart-items" style={{ textAlign: 'center', paddingTop: '1rem' }}>
-                        <div style={{ fontSize: '3rem', color: 'var(--c-gold)', marginBottom: '1rem' }}>💬</div>
+                        <div style={{ fontSize: '1rem', color: 'var(--c-gold)', marginBottom: '1rem' }}>Order Placed</div>
                         <h2 style={{ fontSize: '1.8rem' }}>Direct Order via Messenger</h2>
                         <p style={{ color: 'var(--text-light)', marginTop: '0.5rem', fontSize: '0.95rem', fontWeight: '500' }}>
                             All order details are sent directly to our Messenger to process your order immediately.
@@ -434,7 +577,7 @@ function Home() {
                                                 setTimeout(() => btn.innerText = "1. Copy Order Details", 2000);
                                             }
                                         }}
-                                        style={{ width: '100%', padding: '1rem', fontWeight: 'bold' }}
+                                        style={{ width: '100%', padding: '1rem', fontWeight: 'bold', background: '#d32f2f', color: 'white', border: 'none' }}
                                     >
                                         1. Copy Order Details
                                     </button>
