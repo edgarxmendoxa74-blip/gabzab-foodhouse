@@ -7,6 +7,15 @@ import Maintenance from './Maintenance'
 
 const IS_PAUSED = false;
 
+const formatTime12h = (time24) => {
+    if (!time24) return '';
+    const [hours, minutes] = time24.split(':');
+    const h = parseInt(hours);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    return `${h12}:${minutes} ${ampm}`;
+};
+
 function Home() {
     const [menuItems, setMenuItems] = useState([])
     const [loading, setLoading] = useState(true)
@@ -198,7 +207,7 @@ function Home() {
 
             if (error) throw error
 
-            setLastOrder({ ...data, summary: summary + `\nRef: #${data.id}\nTime: ${new Date().toLocaleTimeString()}` })
+            setLastOrder({ ...data, summary: summary + `\nRef: #${data.id}\nTime: ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}` })
             setCheckoutStep('success')
             setCart([])
             localStorage.removeItem('gabzab_cart')
@@ -263,7 +272,7 @@ function Home() {
             `}</style>
             {/* Top Banner */}
             <div className="top-banner">
-                {storeSettings.store_name} - American Ribhouse | {storeSettings.address} | Tel: {storeSettings.contact} | Hours: {storeSettings.open_time} - {storeSettings.close_time}
+                {storeSettings.store_name} - American Ribhouse | {storeSettings.address} | Tel: {storeSettings.contact} | Hours: {formatTime12h(storeSettings.open_time)} - {formatTime12h(storeSettings.close_time)}
             </div>
 
             {/* Navbar */}

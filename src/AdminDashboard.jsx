@@ -1,6 +1,22 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
 
+const formatTime12h = (time24) => {
+    if (!time24) return '';
+    const [hours, minutes] = time24.split(':');
+    const h = parseInt(hours);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    return `${h12}:${minutes} ${ampm}`;
+};
+
+const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' ' +
+        date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+};
+
 export default function AdminDashboard() {
     const [isAuthenticated, setIsAuthenticated] = useState(false)
     const [username, setUsername] = useState('')
@@ -347,6 +363,7 @@ export default function AdminDashboard() {
                                     <thead>
                                         <tr>
                                             <th>Order #</th>
+                                            <th>Date / Time</th>
                                             <th>Customer</th>
                                             <th>Details</th>
                                             <th>Total</th>
@@ -356,10 +373,13 @@ export default function AdminDashboard() {
                                     </thead>
                                     <tbody>
                                         {orders.length === 0 ? (
-                                            <tr><td colSpan="6" style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>No active orders found.</td></tr>
+                                            <tr><td colSpan="8" style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>No active orders found.</td></tr>
                                         ) : orders.map(o => (
                                             <tr key={o.id}>
                                                 <td style={{ fontFamily: 'monospace', color: '#64748b' }}>#{o.id.slice(0, 6)}</td>
+                                                <td style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                                                    {formatDate(o.timestamp || o.created_at)}
+                                                </td>
                                                 <td>
                                                     <strong style={{ color: '#334155' }}>{o.customer_details?.full_name || 'Guest'}</strong><br />
                                                     <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>{o.customer_details?.phone}</span>
@@ -761,6 +781,9 @@ export default function AdminDashboard() {
                                 <div>
                                     <h4 style={{ color: '#000000', marginBottom: '0.5rem', fontSize: '0.9rem', textTransform: 'uppercase', fontWeight: 'bold' }}>Order Type</h4>
                                     <span className="badge-pill" style={{ background: '#fef3c7', color: '#92400e', marginBottom: '0.5rem', display: 'inline-block' }}>{selectedOrder.order_type?.toUpperCase() || 'UNKNOWN'}</span>
+                                    <p style={{ margin: 0, fontSize: '0.85rem', color: '#666', fontWeight: '600' }}>
+                                        PLACED ON: {formatDate(selectedOrder.timestamp || selectedOrder.created_at)}
+                                    </p>
                                 </div>
                             </div>
 
