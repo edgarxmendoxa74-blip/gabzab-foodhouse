@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react'
 export default function FullDetailsModal(props) {
     const { painting: item, isOpen, onClose, addToCart } = props
 
-    const [selectedVariation, setSelectedVariation] = useState(null)
+    const [selectedVariations, setSelectedVariations] = useState({}) // { [groupName]: option }
     const [selectedFlavor, setSelectedFlavor] = useState('')
     const [selectedAddOns, setSelectedAddOns] = useState([])
     const [diningPreference, setDiningPreference] = useState('')
@@ -12,7 +12,7 @@ export default function FullDetailsModal(props) {
     // Reset state when modal opens with a new item
     useEffect(() => {
         if (isOpen && item) {
-            setSelectedVariation(null)
+            setSelectedVariations({})
             setSelectedFlavor('')
             setSelectedAddOns([])
             setDiningPreference('')
@@ -23,7 +23,7 @@ export default function FullDetailsModal(props) {
     if (!isOpen || !item) return null
 
     // Helper to get array from JSONB or fallback to empty array
-    const variations = Array.isArray(item.variations) ? item.variations : []
+    const variationGroups = Array.isArray(item.variations) ? item.variations : []
     const flavors = Array.isArray(item.flavors) ? item.flavors : []
     const addons = Array.isArray(item.addons) ? item.addons : []
 
@@ -39,14 +39,16 @@ export default function FullDetailsModal(props) {
 
     const handleAddToCart = () => {
         let finalPrice = Number(item.price)
-        let customName = item.name || ''
         let optionsSummary = []
 
-        // Handle Variation price & name (ADD variation price to base price)
-        if (selectedVariation) {
-            finalPrice += Number(selectedVariation.price) || 0
-            optionsSummary.push(selectedVariation.name)
-        }
+        // Handle Grouped Variations price & name
+        Object.keys(selectedVariations).forEach(groupName => {
+            const opt = selectedVariations[groupName]
+            if (opt) {
+                finalPrice += Number(opt.price) || 0
+                optionsSummary.push(`${groupName}: ${opt.name}`)
+            }
+        })
 
         // Handle Flavor
         if (selectedFlavor) {
@@ -70,14 +72,16 @@ export default function FullDetailsModal(props) {
             ? `${item.name} [${optionsSummary.join(' | ')}]`
             : item.name
 
+        // Generate a unique ID based on all selections
+        const varPart = Object.keys(selectedVariations).sort().map(g => `${g}:${selectedVariations[g].name}`).join('-') || 'no_var'
         const customizedItem = {
             ...item,
-            id: `${item.id}-${selectedVariation?.name || 'std'}-${selectedFlavor || 'std'}-${(selectedAddOns.map(a => a.name).sort().join('_') || 'none')}-${diningPreference}`,
+            id: `${item.id}-${varPart}-${selectedFlavor || 'std'}-${(selectedAddOns.map(a => a.name).sort().join('_') || 'none')}-${diningPreference}`,
             customTitle: customTitle.trim(),
             price: finalPrice,
             quantity: quantity,
             customization: {
-                variation: selectedVariation,
+                variations: selectedVariations,
                 flavor: selectedFlavor,
                 addons: selectedAddOns,
                 preference: diningPreference
@@ -97,8 +101,12 @@ export default function FullDetailsModal(props) {
     }
 
     const isAddDisabled = () => {
-        // Required: Variations (if exist)
-        if (variations.length > 0 && !selectedVariation) return true
+        // Required: Variation Groups (if marked as required)
+        for (const group of variationGroups) {
+            if (group.required && !selectedVariations[group.groupName]) {
+                return true
+            }
+        }
         // Required: Flavors (if exist)
         if (flavors.length > 0 && !selectedFlavor) return true
         // Required: Mandatory Free Option
@@ -116,27 +124,39 @@ export default function FullDetailsModal(props) {
                         <h2 className="logo-branding" style={{ color: 'var(--c-gold)', fontSize: '2rem', marginBottom: '0.5rem' }}>{item.name}</h2>
                         <p style={{ color: 'var(--text-light)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>{item.description}</p>
 
-                        {/* Variations Section */}
-                        {variations.length > 0 && (
-                            <div className="modal-section" style={{ marginBottom: '1.5rem' }}>
-                                <p className="modal-label" style={{ fontWeight: 'bold', marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between' }}>
-                                    <span>Select Option</span>
-                                    <span style={{ fontSize: '0.7rem', color: 'var(--c-gold)' }}>REQUIRED</span>
+                        {/* Grouped Variations Section */}
+                        {variationGroups.map((group, gIdx) => (
+                            <div key={group.groupName || gIdx} className="modal-section" style={{ marginBottom: '1.5rem', borderLeft: group.required ? '3px solid var(--c-gold)' : '3px solid transparent', paddingLeft: '1rem' }}>
+                                <p className="modal-label" style={{ fontWeight: 'bold', marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span>{group.groupName}</span>
+                                    {group.required ? (
+                                        <span style={{ fontSize: '0.7rem', color: 'var(--c-gold)', background: 'rgba(255,215,0,0.1)', padding: '2px 6px', borderRadius: '4px' }}>REQUIRED</span>
+                                    ) : (
+                                        <span style={{ fontSize: '0.7rem', color: 'var(--text-light)' }}>OPTIONAL</span>
+                                    )}
                                 </p>
                                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                    {variations.map(v => (
+                                    {group.options.map(opt => (
                                         <button
-                                            key={v.name}
-                                            className={`category-btn ${selectedVariation?.name === v.name ? 'active' : ''}`}
-                                            onClick={() => setSelectedVariation(v)}
+                                            key={opt.name}
+                                            className={`category-btn ${selectedVariations[group.groupName]?.name === opt.name ? 'active' : ''}`}
+                                            onClick={() => {
+                                                const newVars = { ...selectedVariations }
+                                                if (newVars[group.groupName]?.name === opt.name && !group.required) {
+                                                    delete newVars[group.groupName] // Allow deselect if not required
+                                                } else {
+                                                    newVars[group.groupName] = opt
+                                                }
+                                                setSelectedVariations(newVars)
+                                            }}
                                             style={{ fontSize: '0.85rem' }}
                                         >
-                                            {v.name} (₱{Number(v.price).toLocaleString()})
+                                            {opt.name} {Number(opt.price) > 0 && `(+₱${Number(opt.price).toLocaleString()})`}
                                         </button>
                                     ))}
                                 </div>
                             </div>
-                        )}
+                        ))}
 
                         {/* Flavors Section */}
                         {flavors.length > 0 && (
@@ -205,11 +225,19 @@ export default function FullDetailsModal(props) {
                                 <div>
                                     <p className="modal-label" style={{ marginBottom: '0.2rem' }}>Unit Price</p>
                                     <p style={{ color: 'var(--text-light)', fontSize: '1rem', fontWeight: '600', marginBottom: '0.3rem' }}>
-                                        ₱{(Number(item.price) + (selectedVariation ? Number(selectedVariation.price) || 0 : 0) + selectedAddOns.reduce((sum, a) => sum + (Number(a.price) || 0), 0)).toLocaleString()}
+                                        ₱{(
+                                            Number(item.price) +
+                                            Object.values(selectedVariations).reduce((sum, v) => sum + (Number(v.price) || 0), 0) +
+                                            selectedAddOns.reduce((sum, a) => sum + (Number(a.price) || 0), 0)
+                                        ).toLocaleString()}
                                     </p>
                                     <p className="modal-label" style={{ marginBottom: '0.2rem' }}>Total Price ({quantity} item{quantity > 1 ? 's' : ''})</p>
                                     <p style={{ color: 'var(--c-gold)', fontSize: '1.8rem', fontWeight: '800' }}>
-                                        ₱{((Number(item.price) + (selectedVariation ? Number(selectedVariation.price) || 0 : 0) + selectedAddOns.reduce((sum, a) => sum + (Number(a.price) || 0), 0)) * quantity).toLocaleString()}
+                                        ₱{(
+                                            (Number(item.price) +
+                                                Object.values(selectedVariations).reduce((sum, v) => sum + (Number(v.price) || 0), 0) +
+                                                selectedAddOns.reduce((sum, a) => sum + (Number(a.price) || 0), 0)) * quantity
+                                        ).toLocaleString()}
                                     </p>
                                 </div>
 

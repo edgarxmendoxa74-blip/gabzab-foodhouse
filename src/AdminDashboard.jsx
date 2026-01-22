@@ -512,22 +512,112 @@ export default function AdminDashboard() {
                                                 <textarea value={itemForm.description} onChange={e => setItemForm({ ...itemForm, description: e.target.value })} rows={3} className="admin-input"></textarea>
                                             </div>
 
-                                            {/* Variations */}
-                                            <div style={{ gridColumn: 'span 4', background: '#f8fafc', padding: '1rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                                                <h4 style={{ marginBottom: '0.5rem', fontSize: '0.9rem' }}>Variations (Size)</h4>
-                                                <div style={{ marginBottom: '0.5rem' }}>
-                                                    {itemForm.variations.map((v, idx) => (
-                                                        <div key={idx} className="badge-pill" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', marginRight: '5px', marginBottom: '5px', background: 'white', border: '1px solid #e2e8f0' }}>
-                                                            {v.name} (+{v.price}) <span onClick={() => { const n = [...itemForm.variations]; n.splice(idx, 1); setItemForm({ ...itemForm, variations: n }) }} style={{ cursor: 'pointer', color: 'red', fontWeight: 'bold' }}>×</span>
+                                            {/* Grouped Variations */}
+                                            <div style={{ gridColumn: 'span 12', background: '#f8fafc', padding: '1rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                                                    <h4 style={{ margin: 0, fontSize: '1rem' }}>Variation Groups</h4>
+                                                    <button
+                                                        type="button"
+                                                        className="btn-primary"
+                                                        style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
+                                                        onClick={() => {
+                                                            const newGroup = { groupName: '', required: true, options: [] }
+                                                            setItemForm({ ...itemForm, variations: [...itemForm.variations, newGroup] })
+                                                        }}
+                                                    >
+                                                        + Add Variation Group
+                                                    </button>
+                                                </div>
+
+                                                {itemForm.variations.length === 0 && (
+                                                    <p style={{ color: '#94a3b8', fontSize: '0.85rem', textAlign: 'center', padding: '1rem' }}>No variation groups. Click "Add Variation Group" to create one.</p>
+                                                )}
+
+                                                {itemForm.variations.map((group, gIdx) => (
+                                                    <div key={gIdx} style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1rem', marginBottom: '1rem' }}>
+                                                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.75rem' }}>
+                                                            <input
+                                                                type="text"
+                                                                value={group.groupName}
+                                                                onChange={(e) => {
+                                                                    const newVars = [...itemForm.variations]
+                                                                    newVars[gIdx].groupName = e.target.value
+                                                                    setItemForm({ ...itemForm, variations: newVars })
+                                                                }}
+                                                                placeholder="Group Name (e.g. Size, Spice Level)"
+                                                                className="admin-input"
+                                                                style={{ flex: 1, padding: '0.4rem' }}
+                                                            />
+                                                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem', color: group.required ? '#166534' : '#64748b' }}>
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={group.required}
+                                                                    onChange={(e) => {
+                                                                        const newVars = [...itemForm.variations]
+                                                                        newVars[gIdx].required = e.target.checked
+                                                                        setItemForm({ ...itemForm, variations: newVars })
+                                                                    }}
+                                                                />
+                                                                Required
+                                                            </label>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const newVars = itemForm.variations.filter((_, i) => i !== gIdx)
+                                                                    setItemForm({ ...itemForm, variations: newVars })
+                                                                }}
+                                                                style={{ background: '#fee2e2', color: '#b91c1c', border: 'none', padding: '0.3rem 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}
+                                                            >
+                                                                ✕ Remove Group
+                                                            </button>
                                                         </div>
-                                                    ))}
-                                                </div>
-                                                <div style={{ display: 'flex', gap: '5px' }}>
-                                                    <input id="vN" placeholder="Name" style={{ width: '50%', padding: '0.3rem' }} />
-                                                    <input id="vP" type="number" placeholder="Price" style={{ width: '30%', padding: '0.3rem' }} />
-                                                    <button type="button" onClick={() => { const n = document.getElementById('vN').value; const p = document.getElementById('vP').value; if (n) { setItemForm({ ...itemForm, variations: [...itemForm.variations, { name: n, price: p || 0 }] }); document.getElementById('vN').value = ''; document.getElementById('vP').value = ''; } }} className="btn-secondary" style={{ padding: '0.3rem', fontSize: '0.8rem', background: 'var(--primary)', color: 'white', border: 'none' }}>Add</button>
-                                                </div>
+
+                                                        {/* Options in this group */}
+                                                        <div style={{ marginLeft: '0.5rem', paddingLeft: '0.5rem', borderLeft: '2px solid #e2e8f0' }}>
+                                                            <p style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.5rem' }}>Options:</p>
+                                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem', marginBottom: '0.5rem' }}>
+                                                                {(group.options || []).map((opt, oIdx) => (
+                                                                    <span key={oIdx} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.8rem' }}>
+                                                                        {opt.name} {opt.price > 0 && `(+₱${opt.price})`}
+                                                                        <span
+                                                                            onClick={() => {
+                                                                                const newVars = [...itemForm.variations]
+                                                                                newVars[gIdx].options = newVars[gIdx].options.filter((_, i) => i !== oIdx)
+                                                                                setItemForm({ ...itemForm, variations: newVars })
+                                                                            }}
+                                                                            style={{ cursor: 'pointer', color: '#b91c1c', fontWeight: 'bold' }}
+                                                                        >×</span>
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                            <div style={{ display: 'flex', gap: '0.3rem' }}>
+                                                                <input id={`optN_${gIdx}`} placeholder="Option Name" style={{ flex: 2, padding: '0.3rem', fontSize: '0.8rem' }} />
+                                                                <input id={`optP_${gIdx}`} type="number" placeholder="Price" style={{ flex: 1, padding: '0.3rem', fontSize: '0.8rem' }} />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        const nameEl = document.getElementById(`optN_${gIdx}`)
+                                                                        const priceEl = document.getElementById(`optP_${gIdx}`)
+                                                                        const name = nameEl?.value?.trim()
+                                                                        const price = Number(priceEl?.value) || 0
+                                                                        if (name) {
+                                                                            const newVars = [...itemForm.variations]
+                                                                            newVars[gIdx].options = [...(newVars[gIdx].options || []), { name, price }]
+                                                                            setItemForm({ ...itemForm, variations: newVars })
+                                                                            nameEl.value = ''
+                                                                            priceEl.value = ''
+                                                                        }
+                                                                    }}
+                                                                    style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '0.3rem 0.6rem', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer' }}
+                                                                >
+                                                                    Add
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
                                             </div>
+
 
                                             {/* Flavors */}
                                             <div style={{ gridColumn: 'span 4', background: '#f8fafc', padding: '1rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
