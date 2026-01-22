@@ -42,9 +42,9 @@ export default function FullDetailsModal(props) {
         let customName = item.name || ''
         let optionsSummary = []
 
-        // Handle Variation price & name
+        // Handle Variation price & name (ADD variation price to base price)
         if (selectedVariation) {
-            finalPrice = Number(selectedVariation.price) || finalPrice
+            finalPrice += Number(selectedVariation.price) || 0
             optionsSummary.push(selectedVariation.name)
         }
 
@@ -203,11 +203,16 @@ export default function FullDetailsModal(props) {
                         <div className="modal-section" style={{ marginBottom: '1.5rem', borderTop: '1px solid var(--border-light)', paddingTop: '1rem' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div>
-                                    <p className="modal-label" style={{ marginBottom: '0.2rem' }}>Total Price</p>
+                                    <p className="modal-label" style={{ marginBottom: '0.2rem' }}>Unit Price</p>
+                                    <p style={{ color: 'var(--text-light)', fontSize: '1rem', fontWeight: '600', marginBottom: '0.3rem' }}>
+                                        ₱{(Number(item.price) + (selectedVariation ? Number(selectedVariation.price) || 0 : 0) + selectedAddOns.reduce((sum, a) => sum + (Number(a.price) || 0), 0)).toLocaleString()}
+                                    </p>
+                                    <p className="modal-label" style={{ marginBottom: '0.2rem' }}>Total Price ({quantity} item{quantity > 1 ? 's' : ''})</p>
                                     <p style={{ color: 'var(--c-gold)', fontSize: '1.8rem', fontWeight: '800' }}>
-                                        ₱{((selectedVariation ? Number(selectedVariation.price) : Number(item.price)) + selectedAddOns.reduce((sum, a) => sum + (Number(a.price) || 0), 0)).toLocaleString()}
+                                        ₱{((Number(item.price) + (selectedVariation ? Number(selectedVariation.price) || 0 : 0) + selectedAddOns.reduce((sum, a) => sum + (Number(a.price) || 0), 0)) * quantity).toLocaleString()}
                                     </p>
                                 </div>
+
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
                                     <button
                                         onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -218,6 +223,7 @@ export default function FullDetailsModal(props) {
                                         onClick={() => setQuantity(quantity + 1)}
                                         style={{ background: 'var(--c-gold)', border: 'none', color: 'var(--c-midnight)', width: '35px', height: '35px', borderRadius: '4px', fontSize: '1rem', fontWeight: 'bold' }}
                                     >+</button>
+
                                 </div>
                             </div>
                         </div>
