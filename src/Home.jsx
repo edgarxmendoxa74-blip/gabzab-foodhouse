@@ -376,6 +376,17 @@ function Home() {
                                         </div>
                                         <div className="painting-info">
                                             <h3 className="painting-title">{item.name}</h3>
+                                            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.8rem' }}>
+                                                {Array.isArray(item.variations) && item.variations.length > 0 && (
+                                                    <span style={{ fontSize: '0.65rem', background: 'rgba(255,0,0,0.1)', color: 'var(--primary)', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>VARIATIONS</span>
+                                                )}
+                                                {Array.isArray(item.flavors) && item.flavors.length > 0 && (
+                                                    <span style={{ fontSize: '0.65rem', background: 'rgba(255,0,0,0.1)', color: 'var(--primary)', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>FLAVORS</span>
+                                                )}
+                                                {Array.isArray(item.addons) && item.addons.length > 0 && (
+                                                    <span style={{ fontSize: '0.65rem', background: 'rgba(0,0,0,0.05)', color: 'var(--text-light)', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }}>ADD-ONS</span>
+                                                )}
+                                            </div>
                                             <p className="item-description-short">{item.description || 'Deliciously prepared with our signature recipe.'}</p>
                                             <p className="painting-price">₱{Number(item.price).toLocaleString()}</p>
                                             <button
@@ -384,9 +395,21 @@ function Home() {
                                                     setSelectedItem(item)
                                                     setIsModalOpen(true)
                                                 }}
-                                                style={{ marginTop: '1rem', background: 'var(--c-gold)', color: 'var(--c-midnight)', fontWeight: '700', border: 'none' }}
+                                                style={{
+                                                    marginTop: '1rem',
+                                                    background: 'var(--c-gold)',
+                                                    color: 'var(--c-midnight)',
+                                                    fontWeight: '700',
+                                                    border: 'none',
+                                                    width: '100%',
+                                                    padding: '0.8rem',
+                                                    borderRadius: '8px',
+                                                    fontSize: '0.9rem',
+                                                    textTransform: 'uppercase',
+                                                    letterSpacing: '1px'
+                                                }}
                                             >
-                                                Customize
+                                                Customize Order
                                             </button>
                                         </div>
                                     </div>
@@ -657,6 +680,7 @@ function Home() {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 addToCart={addToCart}
+                diningOptions={storeSettings.dining_options || []}
             />
         </div >
     )

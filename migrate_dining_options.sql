@@ -1,0 +1,2 @@
+ALTER TABLE store_settings ADD COLUMN IF NOT EXISTS dining_options JSONB DEFAULT '[{"label": "Regular Preparation", "value": "regular"}, {"label": "Less Waste (No Utensils)", "value": "no_utensils"}, {"label": "Gift Packaging", "value": "gift"}]';
+UPDATE store_settings SET dining_options = '[{"label": "Regular Preparation", "value": "regular"}, {"label": "Less Waste (No Utensils)", "value": "no_utensils"}, {"label": "Gift Packaging", "value": "gift"}]' WHERE dining_options IS NULL;
