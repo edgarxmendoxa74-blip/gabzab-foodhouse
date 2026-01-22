@@ -794,51 +794,7 @@ export default function AdminDashboard() {
                                                 <option value="closed">Force Closed</option>
                                             </select>
                                         </div>
-                                        <div style={{ gridColumn: 'span 12', marginTop: '1.5rem', borderTop: '1px solid #e2e8f0', paddingTop: '1.5rem' }}>
-                                            <h4 style={{ marginBottom: '1rem', fontSize: '1rem', color: '#1e293b', fontWeight: 'bold' }}>Dining Preferences (Mandatory Options)</h4>
-                                            <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '1rem' }}>These options will appear as mandatory free choices for all items.</p>
 
-                                            <div style={{ display: 'grid', gap: '0.8rem', marginBottom: '1rem' }}>
-                                                {(storeSettings.dining_options || []).map((opt, idx) => (
-                                                    <div key={idx} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', background: '#f8fafc', padding: '0.8rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                                                        <input
-                                                            type="text"
-                                                            value={opt.label}
-                                                            onChange={(e) => {
-                                                                const newOpts = [...(storeSettings.dining_options || [])];
-                                                                newOpts[idx].label = e.target.value;
-                                                                setStoreSettings({ ...storeSettings, dining_options: newOpts });
-                                                            }}
-                                                            className="admin-input"
-                                                            style={{ flexGrow: 1, padding: '0.4rem' }}
-                                                            placeholder="Option Label (e.g. Regular)"
-                                                        />
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                const newOpts = (storeSettings.dining_options || []).filter((_, i) => i !== idx);
-                                                                setStoreSettings({ ...storeSettings, dining_options: newOpts });
-                                                            }}
-                                                            style={{ background: '#fee2e2', color: '#b91c1c', border: 'none', padding: '0.4rem 0.8rem', borderRadius: '4px', cursor: 'pointer' }}
-                                                        >
-                                                            Remove
-                                                        </button>
-                                                    </div>
-                                                ))}
-                                            </div>
-
-                                            <button
-                                                type="button"
-                                                className="btn-secondary"
-                                                onClick={() => {
-                                                    const newOpts = [...(storeSettings.dining_options || []), { label: '', value: `opt_${Date.now()}` }];
-                                                    setStoreSettings({ ...storeSettings, dining_options: newOpts });
-                                                }}
-                                                style={{ fontSize: '0.85rem', padding: '0.6rem 1rem' }}
-                                            >
-                                                + Add New Option
-                                            </button>
-                                        </div>
                                         <div style={{ gridColumn: 'span 12', marginTop: '1.5rem' }}>
                                             <button type="submit" className="btn-primary" style={{ width: '100%', borderRadius: '10px' }}>Save Settings</button>
                                         </div>

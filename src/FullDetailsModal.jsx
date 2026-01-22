@@ -6,7 +6,6 @@ export default function FullDetailsModal(props) {
     const [selectedVariations, setSelectedVariations] = useState({}) // { [groupName]: option }
     const [selectedFlavor, setSelectedFlavor] = useState('')
     const [selectedAddOns, setSelectedAddOns] = useState([])
-    const [diningPreference, setDiningPreference] = useState('')
     const [quantity, setQuantity] = useState(1)
 
     // Reset state when modal opens with a new item
@@ -15,7 +14,6 @@ export default function FullDetailsModal(props) {
             setSelectedVariations({})
             setSelectedFlavor('')
             setSelectedAddOns([])
-            setDiningPreference('')
             setQuantity(1)
         }
     }, [isOpen, item])
@@ -27,15 +25,6 @@ export default function FullDetailsModal(props) {
     const flavors = Array.isArray(item.flavors) ? item.flavors : []
     const addons = Array.isArray(item.addons) ? item.addons : []
 
-    // Dining Options (Mandatory & Free)
-    // Use passed props or fallback to system defaults
-    const diningOptions = Array.isArray(props.diningOptions) && props.diningOptions.length > 0
-        ? props.diningOptions
-        : [
-            { label: 'Regular Preparation', value: 'regular' },
-            { label: 'Less Waste (No Utensils)', value: 'no_utensils' },
-            { label: 'Gift Packaging', value: 'gift' }
-        ]
 
     const handleAddToCart = () => {
         let finalPrice = Number(item.price)
@@ -62,11 +51,6 @@ export default function FullDetailsModal(props) {
             optionsSummary.push(`+ ${selectedAddOns.map(a => a.name).join(', ')}`)
         }
 
-        // Handle Dining Preference
-        const pref = diningOptions.find(o => (o.value === diningPreference || o.label === diningPreference))
-        if (pref) {
-            optionsSummary.push(`(${pref.label})`)
-        }
 
         const customTitle = optionsSummary.length > 0
             ? `${item.name} [${optionsSummary.join(' | ')}]`
@@ -76,15 +60,14 @@ export default function FullDetailsModal(props) {
         const varPart = Object.keys(selectedVariations).sort().map(g => `${g}:${selectedVariations[g].name}`).join('-') || 'no_var'
         const customizedItem = {
             ...item,
-            id: `${item.id}-${varPart}-${selectedFlavor || 'std'}-${(selectedAddOns.map(a => a.name).sort().join('_') || 'none')}-${diningPreference}`,
+            id: `${item.id}-${varPart}-${selectedFlavor || 'std'}-${(selectedAddOns.map(a => a.name).sort().join('_') || 'none')}`,
             customTitle: customTitle.trim(),
             price: finalPrice,
             quantity: quantity,
             customization: {
                 variations: selectedVariations,
                 flavor: selectedFlavor,
-                addons: selectedAddOns,
-                preference: diningPreference
+                addons: selectedAddOns
             }
         }
 
@@ -109,8 +92,6 @@ export default function FullDetailsModal(props) {
         }
         // Required: Flavors (if exist)
         if (flavors.length > 0 && !selectedFlavor) return true
-        // Required: Mandatory Free Option
-        if (!diningPreference) return true
         return false
     }
 
@@ -180,25 +161,6 @@ export default function FullDetailsModal(props) {
                             </div>
                         )}
 
-                        {/* Mandatory Free Option Section */}
-                        <div className="modal-section" style={{ marginBottom: '1.5rem', padding: '1rem', background: 'rgba(255, 0, 0, 0.05)', borderRadius: '8px', border: '1px dashed var(--c-gold)' }}>
-                            <p className="modal-label" style={{ fontWeight: 'bold', marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between' }}>
-                                <span>Dining Preference</span>
-                                <span style={{ fontSize: '0.7rem', color: 'var(--c-gold)' }}>FREE & REQUIRED</span>
-                            </p>
-                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                {diningOptions.map((opt, idx) => (
-                                    <button
-                                        key={opt.value || idx}
-                                        className={`category-btn ${diningPreference === (opt.value || opt.label) ? 'active' : ''}`}
-                                        onClick={() => setDiningPreference(opt.value || opt.label)}
-                                        style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}
-                                    >
-                                        {opt.label}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
 
                         {/* Add-ons Section */}
                         {addons.length > 0 && (

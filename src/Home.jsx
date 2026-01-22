@@ -680,7 +680,6 @@ function Home() {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 addToCart={addToCart}
-                diningOptions={storeSettings.dining_options || []}
             />
         </div >
     )
