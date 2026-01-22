@@ -777,23 +777,94 @@ export default function AdminDashboard() {
                                                         <input type="text" value={pm.account_name || ''} onChange={e => {
                                                             const newVal = e.target.value;
                                                             setPaymentSettings(curr => curr.map(p => p.id === pm.id ? { ...p, account_name: newVal } : p));
-                                                        }} onBlur={e => handleSavePaymentSettings(pm.id, 'account_name', e.target.value)} className="admin-input" />
+                                                        }} className="admin-input" />
                                                     </div>
                                                     <div>
                                                         <label className="admin-input-label">Account No.</label>
                                                         <input type="text" value={pm.account_number || ''} onChange={e => {
                                                             const newVal = e.target.value;
                                                             setPaymentSettings(curr => curr.map(p => p.id === pm.id ? { ...p, account_number: newVal } : p));
-                                                        }} onBlur={e => handleSavePaymentSettings(pm.id, 'account_number', e.target.value)} className="admin-input" />
+                                                        }} className="admin-input" />
+                                                    </div>
+                                                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                                                        <button
+                                                            type="button"
+                                                            className="btn-primary"
+                                                            style={{ flex: 1, padding: '0.6rem', fontSize: '0.85rem', borderRadius: '6px' }}
+                                                            onClick={async () => {
+                                                                const currentPm = paymentSettings.find(p => p.id === pm.id)
+                                                                if (currentPm) {
+                                                                    const { error } = await supabase.from('payment_settings').update({
+                                                                        account_name: currentPm.account_name,
+                                                                        account_number: currentPm.account_number
+                                                                    }).eq('id', pm.id)
+                                                                    if (error) {
+                                                                        alert('Error saving: ' + error.message)
+                                                                    } else {
+                                                                        alert(`${pm.name} saved successfully!`)
+                                                                    }
+                                                                }
+                                                            }}
+                                                        >
+                                                            💾 Save
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={async () => {
+                                                                if (confirm(`Delete "${pm.name}" payment method?`)) {
+                                                                    await supabase.from('payment_settings').delete().eq('id', pm.id)
+                                                                    fetchPaymentSettings()
+                                                                }
+                                                            }}
+                                                            style={{ background: '#fee2e2', color: '#b91c1c', border: 'none', padding: '0.6rem 1rem', borderRadius: '6px', cursor: 'pointer', fontSize: '0.85rem' }}
+                                                        >
+                                                            🗑️ Delete
+                                                        </button>
                                                     </div>
                                                 </div>
                                             )}
+
                                         </div>
                                     ))}
+
+                                    {/* Add New Payment Method */}
+                                    <div style={{ marginTop: '1rem', padding: '1rem', border: '2px dashed #e2e8f0', borderRadius: '12px', textAlign: 'center' }}>
+                                        <input
+                                            type="text"
+                                            id="newPaymentName"
+                                            placeholder="New method name (e.g. Maya, Bank Transfer)"
+                                            className="admin-input"
+                                            style={{ marginBottom: '0.5rem', textAlign: 'center' }}
+                                        />
+                                        <button
+                                            type="button"
+                                            className="btn-primary"
+                                            style={{ padding: '0.6rem 1.5rem', fontSize: '0.9rem' }}
+                                            onClick={async () => {
+                                                const nameInput = document.getElementById('newPaymentName')
+                                                const name = nameInput?.value?.trim()
+                                                if (!name) {
+                                                    alert('Please enter a name for the payment method.')
+                                                    return
+                                                }
+                                                const newId = name.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now()
+                                                const { error } = await supabase.from('payment_settings').insert([{ id: newId, name, is_active: true }])
+                                                if (error) {
+                                                    alert('Error adding payment method: ' + error.message)
+                                                } else {
+                                                    nameInput.value = ''
+                                                    fetchPaymentSettings()
+                                                }
+                                            }}
+                                        >
+                                            + Add Payment Method
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     )}
+
 
                     {/* --- ORDER TYPES TAB --- */}
                     {
