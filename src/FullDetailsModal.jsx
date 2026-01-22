@@ -27,7 +27,7 @@ export default function FullDetailsModal(props) {
 
 
     const handleAddToCart = () => {
-        let finalPrice = Number(item.price)
+        let finalPrice = Number(item.price) || 0
         let optionsSummary = []
 
         // Handle Grouped Variations price & name
@@ -35,7 +35,7 @@ export default function FullDetailsModal(props) {
             const opt = selectedVariations[groupName]
             if (opt) {
                 finalPrice += Number(opt.price) || 0
-                optionsSummary.push(`${groupName}: ${opt.name}`)
+                optionsSummary.push(`${groupName}: ${opt.name || 'Selected'}`)
             }
         })
 
@@ -46,21 +46,21 @@ export default function FullDetailsModal(props) {
 
         // Handle Add-ons
         if (selectedAddOns.length > 0) {
-            const addOnsTotal = selectedAddOns.reduce((sum, addon) => sum + (Number(addon.price) || 0), 0)
+            const addOnsTotal = selectedAddOns.reduce((sum, addon) => sum + (Number(addon?.price) || 0), 0)
             finalPrice += addOnsTotal
-            optionsSummary.push(`+ ${selectedAddOns.map(a => a.name).join(', ')}`)
+            optionsSummary.push(`+ ${selectedAddOns.map(a => a?.name || 'Addon').filter(Boolean).join(', ')}`)
         }
 
 
         const customTitle = optionsSummary.length > 0
-            ? `${item.name} [${optionsSummary.join(' | ')}]`
-            : item.name
+            ? `${item.name || 'Item'} [${optionsSummary.join(' | ')}]`
+            : item.name || 'Item'
 
         // Generate a unique ID based on all selections
-        const varPart = Object.keys(selectedVariations).sort().map(g => `${g}:${selectedVariations[g].name}`).join('-') || 'no_var'
+        const varPart = Object.keys(selectedVariations).sort().map(g => `${g}:${selectedVariations[g]?.name || 'opt'}`).join('-') || 'no_var'
         const customizedItem = {
             ...item,
-            id: `${item.id}-${varPart}-${selectedFlavor || 'std'}-${(selectedAddOns.map(a => a.name).sort().join('_') || 'none')}`,
+            id: `${item.id}-${varPart}-${selectedFlavor || 'std'}-${(selectedAddOns.map(a => a?.name || 'addon').sort().join('_') || 'none')}`,
             customTitle: customTitle.trim(),
             price: finalPrice,
             quantity: quantity,
@@ -76,6 +76,7 @@ export default function FullDetailsModal(props) {
     }
 
     const toggleAddOn = (addon) => {
+        if (!addon) return;
         if (selectedAddOns.find(a => a.name === addon.name)) {
             setSelectedAddOns(selectedAddOns.filter(a => a.name !== addon.name))
         } else {
@@ -86,7 +87,7 @@ export default function FullDetailsModal(props) {
     const isAddDisabled = () => {
         // Required: Variation Groups (if marked as required)
         for (const group of variationGroups) {
-            if (group.required && !selectedVariations[group.groupName]) {
+            if (group && group.required && !selectedVariations[group.groupName]) {
                 return true
             }
         }
@@ -102,28 +103,28 @@ export default function FullDetailsModal(props) {
 
                 <div className="modal-body" style={{ display: 'block', padding: 0 }}>
                     <div className="modal-details" style={{ color: 'var(--text)', padding: '2rem' }}>
-                        <h2 className="logo-branding" style={{ color: 'var(--c-gold)', fontSize: '2rem', marginBottom: '0.5rem' }}>{item.name}</h2>
-                        <p style={{ color: 'var(--text-light)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>{item.description}</p>
+                        <h2 className="logo-branding" style={{ color: 'var(--c-gold)', fontSize: '2rem', marginBottom: '0.5rem' }}>{item.name || 'Delicious Item'}</h2>
+                        <p style={{ color: 'var(--text-light)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>{item.description || 'No description available.'}</p>
 
                         {/* Grouped Variations Section */}
                         {variationGroups.map((group, gIdx) => (
-                            <div key={group.groupName || gIdx} className="modal-section" style={{ marginBottom: '1.5rem', borderLeft: group.required ? '3px solid var(--c-gold)' : '3px solid transparent', paddingLeft: '1rem' }}>
+                            <div key={group?.groupName || gIdx} className="modal-section" style={{ marginBottom: '1.5rem', borderLeft: group?.required ? '3px solid var(--c-gold)' : '3px solid transparent', paddingLeft: '1rem' }}>
                                 <p className="modal-label" style={{ fontWeight: 'bold', marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <span>{group.groupName}</span>
-                                    {group.required ? (
+                                    <span>{group?.groupName || `Option ${gIdx + 1}`}</span>
+                                    {group?.required ? (
                                         <span style={{ fontSize: '0.7rem', color: 'var(--c-gold)', background: 'rgba(255,215,0,0.1)', padding: '2px 6px', borderRadius: '4px' }}>REQUIRED</span>
                                     ) : (
                                         <span style={{ fontSize: '0.7rem', color: 'var(--text-light)' }}>OPTIONAL</span>
                                     )}
                                 </p>
                                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                    {group.options.map(opt => (
+                                    {Array.isArray(group?.options) && group.options.map(opt => (
                                         <button
-                                            key={opt.name}
-                                            className={`category-btn ${selectedVariations[group.groupName]?.name === opt.name ? 'active' : ''}`}
+                                            key={opt?.name}
+                                            className={`category-btn ${selectedVariations[group.groupName]?.name === opt?.name ? 'active' : ''}`}
                                             onClick={() => {
                                                 const newVars = { ...selectedVariations }
-                                                if (newVars[group.groupName]?.name === opt.name && !group.required) {
+                                                if (newVars[group.groupName]?.name === opt?.name && !group.required) {
                                                     delete newVars[group.groupName] // Allow deselect if not required
                                                 } else {
                                                     newVars[group.groupName] = opt
@@ -132,7 +133,7 @@ export default function FullDetailsModal(props) {
                                             }}
                                             style={{ fontSize: '0.85rem' }}
                                         >
-                                            {opt.name} {Number(opt.price) > 0 && `(+₱${Number(opt.price).toLocaleString()})`}
+                                            {opt?.name || 'Option'} {Number(opt?.price) > 0 && `(+₱${Number(opt.price).toLocaleString()})`}
                                         </button>
                                     ))}
                                 </div>
@@ -147,14 +148,14 @@ export default function FullDetailsModal(props) {
                                     <span style={{ fontSize: '0.7rem', color: 'var(--c-gold)' }}>REQUIRED</span>
                                 </p>
                                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                    {flavors.map(f => (
+                                    {flavors.map((f, fIdx) => (
                                         <button
-                                            key={typeof f === 'string' ? f : f.name}
-                                            className={`category-btn ${selectedFlavor === (typeof f === 'string' ? f : f.name) ? 'active' : ''}`}
-                                            onClick={() => setSelectedFlavor(typeof f === 'string' ? f : f.name)}
+                                            key={typeof f === 'string' ? f : (f?.name || fIdx)}
+                                            className={`category-btn ${selectedFlavor === (typeof f === 'string' ? f : f?.name) ? 'active' : ''}`}
+                                            onClick={() => setSelectedFlavor(typeof f === 'string' ? f : f?.name)}
                                             style={{ fontSize: '0.85rem' }}
                                         >
-                                            {typeof f === 'string' ? f : f.name}
+                                            {typeof f === 'string' ? f : (f?.name || 'Flavor')}
                                         </button>
                                     ))}
                                 </div>
@@ -169,12 +170,12 @@ export default function FullDetailsModal(props) {
                                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                                     {addons.map(addon => (
                                         <button
-                                            key={addon.name}
-                                            className={`category-btn ${selectedAddOns.find(a => a.name === addon.name) ? 'active' : ''}`}
+                                            key={addon?.name}
+                                            className={`category-btn ${selectedAddOns.find(a => a.name === addon?.name) ? 'active' : ''}`}
                                             onClick={() => toggleAddOn(addon)}
                                             style={{ fontSize: '0.85rem' }}
                                         >
-                                            {addon.name} (+₱{Number(addon.price).toLocaleString()})
+                                            {addon?.name || 'Add-on'} (+₱{Number(addon?.price || 0).toLocaleString()})
                                         </button>
                                     ))}
                                 </div>
@@ -188,17 +189,17 @@ export default function FullDetailsModal(props) {
                                     <p className="modal-label" style={{ marginBottom: '0.2rem' }}>Unit Price</p>
                                     <p style={{ color: 'var(--text-light)', fontSize: '1rem', fontWeight: '600', marginBottom: '0.3rem' }}>
                                         ₱{(
-                                            Number(item.price) +
-                                            Object.values(selectedVariations).reduce((sum, v) => sum + (Number(v.price) || 0), 0) +
-                                            selectedAddOns.reduce((sum, a) => sum + (Number(a.price) || 0), 0)
+                                            Number(item.price || 0) +
+                                            Object.values(selectedVariations).reduce((sum, v) => sum + (Number(v?.price || 0)), 0) +
+                                            selectedAddOns.reduce((sum, a) => sum + (Number(a?.price || 0)), 0)
                                         ).toLocaleString()}
                                     </p>
                                     <p className="modal-label" style={{ marginBottom: '0.2rem' }}>Total Price ({quantity} item{quantity > 1 ? 's' : ''})</p>
                                     <p style={{ color: 'var(--c-gold)', fontSize: '1.8rem', fontWeight: '800' }}>
                                         ₱{(
-                                            (Number(item.price) +
-                                                Object.values(selectedVariations).reduce((sum, v) => sum + (Number(v.price) || 0), 0) +
-                                                selectedAddOns.reduce((sum, a) => sum + (Number(a.price) || 0), 0)) * quantity
+                                            (Number(item.price || 0) +
+                                                Object.values(selectedVariations).reduce((sum, v) => sum + (Number(v?.price || 0)), 0) +
+                                                selectedAddOns.reduce((sum, a) => sum + (Number(a?.price || 0)), 0)) * quantity
                                         ).toLocaleString()}
                                     </p>
                                 </div>

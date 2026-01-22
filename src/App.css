@@ -27,7 +27,7 @@
   /* Solid Black Text */
   --card-bg: #ffffff;
   --gradient-brand: linear-gradient(135deg, #ff0000, #d32f2f);
-  --transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition: none;
   --shadow-premium: 0 10px 40px rgba(0, 0, 0, 0.1);
   --shadow-gold: 0 5px 15px rgba(255, 0, 0, 0.2);
 
@@ -66,7 +66,6 @@ h4 {
 a {
   text-decoration: none;
   color: inherit;
-  transition: var(--transition);
 }
 
 button {
@@ -75,7 +74,6 @@ button {
   outline: none;
   background: none;
   font-family: inherit;
-  transition: var(--transition);
 }
 
 .container {
@@ -156,7 +154,7 @@ button {
 .cart-icon {
   position: relative;
   font-size: 1.5rem;
-  transition: transform 0.3s ease;
+  font-size: 1.5rem;
   color: var(--accent);
 }
 
@@ -190,8 +188,6 @@ button {
 }
 
 .btn-primary:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 15px 40px rgba(249, 212, 35, 0.4);
   background: var(--accent-hover);
   color: var(--c-midnight);
 }
@@ -199,31 +195,6 @@ button {
 /* Gallery */
 .gallery-section {
   padding: 6rem 0 8rem;
-  animation: fadeIn 1s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
 }
 
 .section-title {
@@ -247,7 +218,6 @@ button {
 
 .painting-card {
   background-color: var(--card-bg);
-  transition: var(--transition);
   position: relative;
   overflow: hidden;
   border-radius: 8px;
@@ -257,8 +227,6 @@ button {
 }
 
 .painting-card:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
   border-color: var(--c-gold);
   z-index: 10;
 }
@@ -382,7 +350,6 @@ button {
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: var(--transition);
 }
 
 .painting-card:hover .add-to-cart-overlay {
@@ -412,7 +379,6 @@ button {
   background: rgba(0, 0, 0, 0.05);
   border: 1px solid rgba(0, 0, 0, 0.1);
   color: var(--text);
-  transition: var(--transition);
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -441,7 +407,6 @@ button {
   background-color: var(--bg);
   box-shadow: -20px 0 60px rgba(0, 0, 0, 0.05);
   z-index: 2000;
-  transition: var(--transition);
   padding: 3rem;
   display: flex;
   flex-direction: column;
@@ -515,21 +480,6 @@ button {
   font-weight: 600;
   font-size: 1.2rem;
   letter-spacing: 1px;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    opacity: 0.4;
-  }
-
-  50% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 0.4;
-  }
 }
 
 /* Checkout Form */
@@ -558,7 +508,6 @@ button {
   font-family: inherit;
   background: transparent;
   color: var(--text);
-  transition: var(--transition);
 }
 
 .form-group input:focus {
@@ -628,7 +577,6 @@ button {
 
 .icon-btn:hover {
   background: #f1f5f9;
-  transform: scale(1.1);
 }
 
 .icon-btn.edit {
@@ -651,7 +599,6 @@ button {
   border-radius: 8px;
   border: 1px solid #e2e8f0;
   background: #f8fafc;
-  transition: all 0.2s;
   font-family: 'Outfit', sans-serif;
 }
 
@@ -694,8 +641,6 @@ button {
   right: 0;
   bottom: 0;
   background-color: #ccc;
-  -webkit-transition: .4s;
-  transition: .4s;
 }
 
 .slider:before {
@@ -706,8 +651,6 @@ button {
   left: 3px;
   bottom: 3px;
   background-color: white;
-  -webkit-transition: .4s;
-  transition: .4s;
 }
 
 input:checked+.slider {
@@ -758,7 +701,6 @@ input:checked+.slider:before {
   font-weight: 600;
   color: var(--text-light);
   position: relative;
-  transition: var(--transition);
 }
 
 .tab-btn.active {
@@ -869,7 +811,6 @@ input:checked+.slider:before {
   padding: 1rem 2rem;
   border-radius: 50px;
   font-weight: 600;
-  transition: var(--transition);
 }
 
 .btn-secondary:hover {
@@ -905,12 +846,11 @@ input:checked+.slider:before {
   align-items: center;
   justify-content: center;
   z-index: 3000;
-  animation: fadeIn 0.3s ease;
 }
 
 @keyframes fadeIn {
   from {
-    opacity: 0;
+    opacity: 1;
   }
 
   to {
@@ -927,18 +867,15 @@ input:checked+.slider:before {
   border-radius: 4px;
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
   position: relative;
-  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes slideUp {
   from {
-    opacity: 0;
-    transform: translateY(30px);
+    opacity: 1;
   }
 
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -956,14 +893,12 @@ input:checked+.slider:before {
   align-items: center;
   justify-content: center;
   z-index: 10;
-  transition: var(--transition);
   line-height: 1;
   padding-bottom: 4px;
 }
 
 .modal-close:hover {
   background: rgba(0, 0, 0, 0.6);
-  transform: rotate(90deg);
 }
 
 .modal-body {
@@ -1064,7 +999,6 @@ input:checked+.slider:before {
   font-size: 0.8rem;
   font-weight: 500;
   border-radius: 4px;
-  transition: var(--transition);
   width: 100%;
 }
 
@@ -1190,7 +1124,6 @@ input:checked+.slider:before {
   font-weight: 600;
   color: var(--text-light);
   border-radius: 8px 8px 0 0;
-  transition: all 0.2s ease;
 }
 
 .tab-btn:hover {
@@ -1391,14 +1324,12 @@ input:checked+.slider:before {
   cursor: pointer;
   font-weight: 500;
   font-size: 0.95rem;
-  transition: all 0.2s ease;
   text-align: left;
 }
 
 .admin-nav-btn:hover {
   background: rgba(255, 255, 255, 0.05);
   color: white;
-  transform: translateX(5px);
 }
 
 .admin-nav-btn.active {
@@ -1422,7 +1353,6 @@ input:checked+.slider:before {
   border-radius: 10px;
   cursor: pointer;
   font-weight: 600;
-  transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;

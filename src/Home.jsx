@@ -241,7 +241,6 @@ function Home() {
                     padding: '12px 24px',
                     borderRadius: '8px',
                     zIndex: 3000,
-                    animation: 'fadeIn 0.3s ease-out',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '10px',
@@ -251,10 +250,6 @@ function Home() {
                 </div>
             )}
             <style>{`
-                @keyframes fadeIn {
-                    from { opacity: 0; transform: translate(-50%, 20px); }
-                    to { opacity: 1; transform: translate(-50%, 0); }
-                }
                 .checkout-form label {
                     color: black !important;
                     font-weight: 600;
